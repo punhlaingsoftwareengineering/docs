@@ -1,0 +1,24 @@
+---
+description: Core stack and conventions for docs.zarnihlawn.com
+alwaysApply: true
+---
+
+# Project stack
+
+- **Svelte 5** with runes mode (forced in `vite.config.ts` except `node_modules`)
+- **SvelteKit 2** (`@sveltejs/kit@next`, config in `vite.config.ts` via `sveltekit()` plugin)
+- **Tailwind CSS 4** + **daisyUI 5** (configure in `src/routes/layout.css`)
+- **Drizzle ORM** + Neon Postgres (`src/lib/server/db/`)
+- **Better Auth** (`src/lib/server/auth.ts`, `hooks.server.ts`)
+- **Zod** for runtime validation of forms, actions, and API input
+- **uuid** for client-facing IDs (prefer `crypto.randomUUID()` on server when possible)
+
+## Conventions
+
+- Server-only code lives in `src/lib/server/` or `+page.server.ts` / `+server.ts`
+- Env vars: `src/env.ts` with `defineEnvVars`; import from `$app/env/private` or `$app/env/public`
+- i18n: Paraglide (`$lib/paraglide/`)
+- Use `$app/paths` `resolve()` for typed internal links
+- Use `$app/state` `page` instead of deprecated `$app/stores`
+- Prefer daisyUI component classes over hand-rolled Tailwind for UI primitives
+- Validate untrusted input with Zod before DB writes or auth calls

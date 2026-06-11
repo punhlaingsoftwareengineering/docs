@@ -1,0 +1,27 @@
+<!doctype html>
+
+<html lang="%paraglide.lang%" dir="%paraglide.dir%" data-theme="winter">
+	<head>
+		<script>
+			(function () {
+				var k = 'docs-theme';
+				var t = localStorage.getItem(k);
+				if (t !== 'winter' && t !== 'night') {
+					t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'night' : 'winter';
+				}
+				document.documentElement.setAttribute('data-theme', t);
+			})();
+		</script>
+		<meta charset="utf-8" />
+
+		<meta
+			name="viewport"
+			content="width=device-width, initial-scale=1"
+		/>
+
+		<meta name="text-scale" content="scale" />
+		%sveltekit.head%
+	</head>
+
+	<body data-sveltekit-preload-data="hover"><div style="display: contents">%sveltekit.body%</div></body>
+</html>

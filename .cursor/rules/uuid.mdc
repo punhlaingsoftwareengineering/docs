@@ -1,0 +1,45 @@
+---
+description: UUID generation and validation patterns
+globs: "**/*.ts"
+alwaysApply: false
+---
+
+# UUID
+
+Use UUIDs for public-facing record IDs. Prefer server-generated IDs.
+
+## Generation
+
+```ts
+// Preferred on server (Node 19+, no dependency)
+const id = crypto.randomUUID();
+
+// Or with the uuid package
+import { v4 as uuidv4 } from 'uuid';
+const id = uuidv4();
+```
+
+## Drizzle schema
+
+```ts
+import { pgTable, uuid, text } from 'drizzle-orm/pg-core';
+
+export const document = pgTable('document', {
+	id: uuid('id').primaryKey().defaultRandom(),
+	title: text('title').notNull()
+});
+```
+
+## Validation with Zod
+
+```ts
+import { z } from 'zod';
+
+const idParam = z.object({ id: z.uuid() });
+```
+
+## Rules
+
+- Never accept client-supplied UUIDs as primary keys unless idempotency is required
+- Use `z.uuid()` to validate route params and JSON bodies
+- Do not use sequential integer IDs in URLs for user-owned resources

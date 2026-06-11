@@ -1,0 +1,13 @@
+---
+description: Public documentation pages — DB-backed, search, sidebar
+globs: "src/routes/docs/**,src/lib/components/docs/**"
+alwaysApply: false
+---
+
+# Public docs feature
+
+- Content from Postgres via `$lib/server/services/docs.ts`
+- Only `published` documents visible to anonymous visitors; admins see draft preview with banner
+- `/docs` index supports `?q=` search (Postgres `ilike`)
+- `/docs/[slug]` renders markdown via `$lib/markdown.ts` (marked + DOMPurify)
+- Sidebar groups published docs by category in `+layout.server.ts`

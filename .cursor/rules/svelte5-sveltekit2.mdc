@@ -1,0 +1,44 @@
+---
+description: Svelte 5 runes and SvelteKit 2 patterns
+globs: "**/*.{svelte,svelte.ts,svelte.js}"
+alwaysApply: false
+---
+
+# Svelte 5 + SvelteKit 2
+
+## Runes (required in this project)
+
+```svelte
+<script lang="ts">
+	let { title, count = 0 }: { title: string; count?: number } = $props();
+	let doubled = $derived(count * 2);
+	let items = $state<string[]>([]);
+</script>
+
+<button onclick={() => items.push('x')}>{title}: {doubled}</button>
+```
+
+- Use `$props()`, `$state`, `$derived` / `$derived.by` — not `export let`, `$:`, or legacy `on:click`
+- Event handlers: `onclick`, `onsubmit` (not `on:click`)
+- Children: `let { children } = $props()` and `{@render children()}`
+- Props-derived values must use `$derived`, not plain `let`
+
+## SvelteKit 2 client APIs
+
+```ts
+import { page } from '$app/state';
+import { enhance } from '$app/forms';
+import { resolve } from '$app/paths';
+```
+
+- Navigation/state: `$app/state`, not `$app/stores`
+- Links: `resolve('/path')` for type-safe hrefs
+- Forms: `use:enhance` with `+page.server.ts` actions
+
+## Avoid
+
+- `$effect` for derived state (use `$derived`)
+- `browser` guards inside `$effect` (effects don't run on server)
+- Legacy slots (`<slot>`) — use snippets instead
+
+Use the Svelte MCP `svelte-autofixer` when writing or editing `.svelte` files.

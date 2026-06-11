@@ -1,0 +1,33 @@
+---
+description: Route map, layouts, and public vs protected paths
+globs: src/routes/**
+alwaysApply: false
+---
+
+# Routing
+
+## URL map (v1)
+
+| Path | Access | Purpose |
+|------|--------|---------|
+| `/` | public | Home / landing |
+| `/docs` | public | Documentation index + search |
+| `/docs/[slug]` | public | Single published doc |
+| `/login` | public | Admin GitHub login |
+| `/admin` | admin | Dashboard |
+| `/admin/documents` | admin | Document list |
+| `/admin/documents/new` | admin | Create document |
+| `/admin/documents/[id]` | admin | CodeMirror editor |
+| `/admin/settings` | admin | Site + account settings |
+
+## Groups
+
+- **Public:** `/`, `/docs`, `/docs/*`
+- **Protected:** `/admin`, `/admin/*` — require `event.locals.user`
+- **Auth:** `/login` — redirect to `/admin` if signed in
+
+## Conventions
+
+- Use `resolve()` from `$app/paths` for internal links
+- `/admin/**` uses `+layout.server.ts` for auth guard
+- Unpublished docs return 404 for public; admin can preview when logged in

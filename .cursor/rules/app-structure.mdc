@@ -1,0 +1,38 @@
+---
+description: App purpose, audience, admin model, and folder conventions
+alwaysApply: true
+---
+
+# App structure
+
+## Purpose
+
+Personal software documentation site. Markdown-only content, rendered for readers.
+
+## Audience
+
+- **Readers:** public visitors browsing documentation
+- **Admin:** single owner who writes and manages all content
+
+## Auth model
+
+- First registered user becomes **admin** (bootstrap)
+- After admin exists: **no new signups** — login restricted to admin only
+- Admin uses in-app editor to create, edit, and manage doc pages
+
+## Content
+
+- Storage format: **Markdown only** in Postgres (`document` table)
+- Public site reads published documents from DB
+- Style: software documentation (guides, reference, API docs)
+
+## v1 primary action
+
+Admin signs in and manages documentation via CodeMirror editor at `/admin/documents/*`.
+
+## Folder conventions
+
+- `src/lib/components/admin/` — admin shell and editor
+- `src/lib/components/docs/` — public docs layout
+- `src/lib/schemas/` — Zod validation schemas
+- `src/lib/server/services/` — docs, settings, categories

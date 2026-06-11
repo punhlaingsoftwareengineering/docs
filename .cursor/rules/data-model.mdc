@@ -1,0 +1,29 @@
+---
+description: Drizzle schema and ID conventions for docs CMS
+globs: src/lib/server/db/**,src/lib/server/services/**
+alwaysApply: false
+---
+
+# Data model
+
+## IDs
+
+- `document`, `category`, `tag`: `uuid().primaryKey().defaultRandom()`
+- `site_settings`: singleton row `id = 'default'`
+
+## Tables
+
+- `category` — fixed seed: getting-started, guides, reference, examples, changelog
+- `document` — slug unique, title, content (markdown), excerpt, published, categoryId
+- `tag` + `document_tag` — many-to-many tags on documents
+- `site_settings` — site branding, landing hero, defaults
+
+## Migrations
+
+- Use `pnpm run db:generate` then `pnpm run db:push --force` for schema changes
+- Seed categories and default settings in `src/lib/server/db/seed.ts`
+
+## Slugs
+
+- Auto-generate from title (kebab-case) when slug empty on save
+- Admin can override slug manually

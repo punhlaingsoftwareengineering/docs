@@ -1,0 +1,48 @@
+---
+description: daisyUI 5 component and theme patterns with Tailwind 4
+globs: "**/*.{svelte,css}"
+alwaysApply: false
+---
+
+# daisyUI 5
+
+## Setup (Tailwind 4)
+
+In `src/routes/layout.css`:
+
+```css
+@import 'tailwindcss';
+@plugin 'daisyui';
+@plugin '@tailwindcss/forms';
+@plugin '@tailwindcss/typography';
+```
+
+Optional themes in CSS (not `tailwind.config.js`):
+
+```css
+@plugin 'daisyui' {
+  themes: winter --default, night --prefersdark;
+}
+```
+
+Light mode uses **winter**; dark mode uses **night**. Theme toggle persists to `localStorage` key `docs-theme`.
+
+## Usage
+
+Prefer semantic daisyUI classes over custom utility stacks:
+
+```svelte
+<button class="btn btn-primary">Save</button>
+<input class="input input-bordered w-full" />
+<div class="card bg-base-100 shadow-xl">
+  <div class="card-body">
+    <h2 class="card-title">Title</h2>
+    <p class="text-base-content/70">Body</p>
+  </div>
+</div>
+```
+
+- Use `btn`, `input`, `select`, `textarea`, `card`, `modal`, `alert`, `badge`, `navbar`
+- Theme tokens: `bg-base-100`, `text-base-content`, `border-base-300`
+- Combine with Tailwind utilities for layout (`flex`, `gap-4`, `grid`) — not for reinventing buttons/inputs
+- Do not use removed daisyUI 4 patterns (`btn-ghost` still valid; check v5 docs for renamed utilities)

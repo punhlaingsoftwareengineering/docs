@@ -1,0 +1,45 @@
+---
+description: Zod validation for forms, actions, and APIs
+globs: "**/*.ts"
+alwaysApply: false
+---
+
+# Zod
+
+Validate all untrusted input in `+page.server.ts` actions, `+server.ts` handlers, and remote functions.
+
+```ts
+import { z } from 'zod';
+import { fail } from '@sveltejs/kit';
+
+const signInSchema = z.object({
+	email: z.email(),
+	password: z.string().min(8),
+	name: z.string().min(1).optional()
+});
+
+export const actions = {
+	signUp: async ({ request }) => {
+		const raw = Object.fromEntries(await request.formData());
+		const parsed = signInSchema.safeParse(raw);
+
+		if (!parsed.success) {
+			return fail(400, {
+				message: parsed.error.issues[0]?.message ?? 'Invalid input',
+				errors: parsed.error.flatten().fieldErrors
+			});
+		}
+
+		const { email, password, name } = parsed.data;
+		// ...
+	}
+};
+```
+
+## Rules
+
+- Use `safeParse` in request handlers; throw only for programmer errors
+- Share schemas in `$lib/schemas/` when used by client + server
+- Infer types: `type SignIn = z.infer<typeof signInSchema>`
+- Prefer `z.email()`, `z.uuid()`, `z.coerce.number()` over loose `z.string()` where applicable
+- Return `fail(status, { errors })` so SvelteKit forms can show field errors

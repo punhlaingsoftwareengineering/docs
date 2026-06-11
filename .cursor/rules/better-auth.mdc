@@ -1,0 +1,54 @@
+---
+description: Better Auth integration patterns for this SvelteKit app
+globs: "src/lib/server/auth.ts,src/hooks.server.ts,src/app.d.ts,src/routes/**/better-auth/**"
+alwaysApply: false
+---
+
+# Better Auth
+
+Auth is configured in `src/lib/server/auth.ts` and wired in `src/hooks.server.ts`.
+
+## Server setup
+
+```ts
+import { betterAuth } from 'better-auth/minimal';
+import { drizzleAdapter } from 'better-auth/adapters/drizzle';
+import { sveltekitCookies } from 'better-auth/svelte-kit';
+import { getRequestEvent } from '$app/server';
+
+export const auth = betterAuth({
+	baseURL: ORIGIN,
+	secret: BETTER_AUTH_SECRET,
+	database: drizzleAdapter(db, { provider: 'pg' }),
+	plugins: [sveltekitCookies(getRequestEvent)] // must be last
+});
+```
+
+## Hooks
+
+```ts
+import { svelteKitHandler } from 'better-auth/svelte-kit';
+
+const session = await auth.api.getSession({ headers: event.request.headers });
+if (session) {
+	event.locals.user = session.user;
+	event.locals.session = session.session;
+}
+return svelteKitHandler({ event, resolve, auth, building });
+```
+
+## Single admin (GitHub only)
+
+- `emailAndPassword` disabled — GitHub OAuth only on `/login`
+- `disableImplicitSignUp: true` on GitHub provider
+- **No admin yet:** login shows **Sign up with GitHub** (`requestSignUp: true`) — first user becomes admin
+- **Admin exists:** login shows **Sign in with GitHub** only — no signup for visitors
+- `databaseHooks.user.create.before` rejects any second user
+- Check `hasAdmin()` from `$lib/server/users` for UI and action guards
+
+## Forms and actions
+
+- Use `auth.api.signInSocial` with `requestSignUp` when bootstrapping admin
+- Catch `APIError` from `better-auth/api` and return `fail(400, { message })`
+- Protect routes in `load` via `event.locals.user` + `redirect(302, '/login')`
+- Types: `User`, `Session` from `better-auth` in `app.d.ts` `Locals`
