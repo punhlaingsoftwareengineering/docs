@@ -2,6 +2,7 @@
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { closeDocsSearch, docsSearch } from '$lib/state/docs-search.svelte';
+	import { highlightSearchText } from '$lib/utils/search-highlight';
 
 	type SearchResult = {
 		id: string;
@@ -16,7 +17,7 @@
 	let results = $state<SearchResult[]>([]);
 	let loading = $state(false);
 	let activeIndex = $state(0);
-	let debounceTimer: ReturnType<typeof setTimeout> | undefined;
+	let fetchId = 0;
 
 	const open = $derived(docsSearch.open);
 
@@ -36,23 +37,24 @@
 	});
 
 	async function fetchResults(q: string) {
+		const id = ++fetchId;
 		loading = true;
 		try {
 			const params = new URLSearchParams();
 			if (q.trim()) params.set('q', q.trim());
 			const res = await fetch(`/api/search?${params}`);
 			const data = (await res.json()) as { results: SearchResult[] };
+			if (id !== fetchId) return;
 			results = data.results;
 			activeIndex = 0;
 		} finally {
-			loading = false;
+			if (id === fetchId) loading = false;
 		}
 	}
 
 	function onQueryInput(value: string) {
 		query = value;
-		clearTimeout(debounceTimer);
-		debounceTimer = setTimeout(() => fetchResults(value), 200);
+		fetchResults(value);
 	}
 
 	function navigateTo(result: SearchResult) {
@@ -126,22 +128,23 @@
 					{query.trim() ? 'No results found.' : 'Type to search published docs.'}
 				</p>
 			{:else}
-				<ul class="menu menu-sm">
+				<ul class="flex w-full flex-col gap-1">
 					{#each results as result, i (result.id)}
-						<li>
+						<li class="w-full">
 							<button
 								type="button"
-								class:menu-active={i === activeIndex}
+								class="flex w-full flex-col items-start gap-1 rounded-lg px-3 py-2.5 text-left transition-colors"
+								class:bg-base-200={i === activeIndex}
 								onclick={() => navigateTo(result)}
 								onmouseenter={() => (activeIndex = i)}
 							>
-								<div class="flex flex-col items-start gap-0.5 text-left">
-									<span class="font-medium">{result.title}</span>
-									<span class="text-xs text-base-content/50">{result.categoryName}</span>
-									{#if result.excerpt}
-										<span class="line-clamp-1 text-xs text-base-content/60">{result.excerpt}</span>
-									{/if}
-								</div>
+								<span class="w-full font-medium">{@html highlightSearchText(result.title, query)}</span>
+								<span class="text-xs text-base-content/50">{result.categoryName}</span>
+								{#if result.excerpt}
+									<span class="line-clamp-2 w-full text-xs text-base-content/60">
+										{@html highlightSearchText(result.excerpt, query)}
+									</span>
+								{/if}
 							</button>
 						</li>
 					{/each}

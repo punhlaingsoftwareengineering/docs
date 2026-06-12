@@ -30,15 +30,46 @@ export async function seedDatabase() {
 			.limit(1);
 
 		if (gettingStarted) {
+			const [intro] = await db
+				.insert(document)
+				.values({
+					title: 'Introduction',
+					slug: 'intro',
+					content:
+						'# Introduction\n\nWelcome to your documentation site. This is the first page visitors see when they open **Documentation**.\n\n## What you can do\n\n- Browse nested pages in the left sidebar\n- Use search from the navbar\n- Edit everything in **Admin → Documents**\n',
+					excerpt: 'Welcome to your documentation site.',
+					published: true,
+					categoryId: gettingStarted.id,
+					sortOrder: 0
+				})
+				.returning();
+
+			const [install] = await db
+				.insert(document)
+				.values({
+					title: 'Install',
+					slug: 'install',
+					content:
+						'# Install\n\nThis is a level-2 section page. It has its own content and child pages below.\n\n## Overview\n\nUse the admin editor to manage nested documentation up to three levels deep.\n',
+					excerpt: 'How to set up your documentation site.',
+					published: true,
+					categoryId: gettingStarted.id,
+					parentDocumentId: intro.id,
+					sortOrder: 0
+				})
+				.returning();
+
 			await db.insert(document).values([
 				{
-					title: 'Welcome',
-					slug: 'welcome',
+					title: 'Local setup',
+					slug: 'local-setup',
 					content:
-						'# Welcome\n\nThis is your documentation site. Edit this page in **Admin → Documents**.\n\n## Getting started\n\n1. Sign in at `/login`\n2. Create or edit documents\n3. Publish when ready\n',
-					excerpt: 'Get started with your new documentation site.',
+						'# Local setup\n\n1. Copy `.env.example` to `.env`\n2. Set `DATABASE_URL`\n3. Run `npm run db:push` and `npm run db:seed`\n4. Start the dev server with `npm run dev`\n',
+					excerpt: 'Run the site on your machine.',
 					published: true,
-					categoryId: gettingStarted.id
+					categoryId: gettingStarted.id,
+					parentDocumentId: install.id,
+					sortOrder: 0
 				},
 				{
 					title: 'Writing in Markdown',
@@ -47,7 +78,8 @@ export async function seedDatabase() {
 						'# Writing in Markdown\n\nUse the CodeMirror editor to write docs with **bold**, _italic_, lists, and code blocks.\n\n```ts\nconst hello = "world";\n```\n',
 					excerpt: 'Tips for writing documentation in Markdown.',
 					published: true,
-					categoryId: gettingStarted.id
+					categoryId: gettingStarted.id,
+					sortOrder: 1
 				}
 			]);
 		}

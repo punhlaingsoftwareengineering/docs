@@ -1,8 +1,9 @@
-import { searchPublishedDocuments } from '$lib/server/services/docs';
+import { error, redirect } from '@sveltejs/kit';
+import { getFirstPublishedDocument } from '$lib/server/services/docs';
 import type { PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async ({ url }) => {
-	const q = url.searchParams.get('q') ?? '';
-	const results = await searchPublishedDocuments(q);
-	return { results, q };
+export const load: PageServerLoad = async () => {
+	const first = await getFirstPublishedDocument();
+	if (!first) error(404, 'No published documentation yet');
+	redirect(302, `/docs/${first.slug}`);
 };

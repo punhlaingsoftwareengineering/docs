@@ -1,4 +1,4 @@
-import { listDocuments } from '$lib/server/services/docs';
+import { computeDepthMap, listDocuments, listDocumentsForTree } from '$lib/server/services/docs';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ url }) => {
@@ -6,7 +6,16 @@ export const load: PageServerLoad = async ({ url }) => {
 	const search = url.searchParams.get('q') ?? '';
 	const sort = (url.searchParams.get('sort') ?? 'updated') as 'updated' | 'title' | 'category';
 
-	const documents = await listDocuments({ filter, search, sort });
+	const [documents, allDocs] = await Promise.all([
+		listDocuments({ filter, search, sort }),
+		listDocumentsForTree({ includeUnpublished: true })
+	]);
 
-	return { documents, filter, search, sort };
+	const depthMap = computeDepthMap(allDocs);
+	const documentsWithDepth = documents.map((doc) => ({
+		...doc,
+		depth: depthMap.get(doc.id) ?? 1
+	}));
+
+	return { documents: documentsWithDepth, filter, search, sort };
 };

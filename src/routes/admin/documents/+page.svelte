@@ -1,8 +1,39 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
+	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
 	import AdminHeader from '$lib/components/admin/AdminHeader.svelte';
 
 	let { data } = $props();
+
+	let search = $state('');
+	let syncedSearch = $state('');
+
+	$effect(() => {
+		if (data.search !== syncedSearch) {
+			search = data.search;
+			syncedSearch = data.search;
+		}
+	});
+
+	function updateFilters(updates: { q?: string; filter?: string; sort?: string }) {
+		const params = new URLSearchParams(page.url.searchParams);
+
+		if (updates.q !== undefined) {
+			search = updates.q;
+			syncedSearch = updates.q;
+			if (updates.q.trim()) params.set('q', updates.q);
+			else params.delete('q');
+		}
+		if (updates.filter !== undefined) {
+			params.set('filter', updates.filter);
+		}
+		if (updates.sort !== undefined) {
+			params.set('sort', updates.sort);
+		}
+
+		goto(`?${params}`, { replaceState: true, keepFocus: true, noScroll: true });
+	}
 </script>
 
 <AdminHeader
@@ -15,26 +46,36 @@
 
 <div class="flex-1 space-y-4 p-6">
 	<div class="flex flex-wrap items-center gap-3">
-		<form method="GET" class="flex flex-1 flex-wrap gap-2">
+		<div class="flex flex-1 flex-wrap gap-2">
 			<input
 				type="search"
 				name="q"
-				value={data.search}
+				value={search}
 				placeholder="Search documents…"
 				class="input input-bordered input-sm w-full max-w-xs"
+				oninput={(e) => updateFilters({ q: e.currentTarget.value })}
 			/>
-			<select name="filter" class="select select-bordered select-sm" value={data.filter}>
+			<select
+				name="filter"
+				class="select select-bordered select-sm"
+				value={data.filter}
+				onchange={(e) => updateFilters({ filter: e.currentTarget.value })}
+			>
 				<option value="all">All</option>
 				<option value="published">Published</option>
 				<option value="draft">Drafts</option>
 			</select>
-			<select name="sort" class="select select-bordered select-sm" value={data.sort}>
+			<select
+				name="sort"
+				class="select select-bordered select-sm"
+				value={data.sort}
+				onchange={(e) => updateFilters({ sort: e.currentTarget.value })}
+			>
 				<option value="updated">Last updated</option>
 				<option value="title">Title A–Z</option>
 				<option value="category">Category</option>
 			</select>
-			<button type="submit" class="btn btn-sm btn-outline">Apply</button>
-		</form>
+		</div>
 		<a href={resolve('/admin/documents/new')} class="btn btn-primary btn-sm">New document</a>
 	</div>
 
@@ -48,6 +89,7 @@
 				<thead>
 					<tr>
 						<th>Title</th>
+						<th>Level</th>
 						<th>Category</th>
 						<th>Status</th>
 						<th>Updated</th>
@@ -58,6 +100,9 @@
 					{#each data.documents as doc (doc.id)}
 						<tr class="hover">
 							<td class="font-medium">{doc.title}</td>
+							<td>
+								<span class="badge badge-info badge-sm">Level {doc.depth}</span>
+							</td>
 							<td class="text-sm text-base-content/70">{doc.categoryName}</td>
 							<td>
 								{#if doc.published}

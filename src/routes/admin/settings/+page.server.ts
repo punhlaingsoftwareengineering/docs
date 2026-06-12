@@ -16,19 +16,22 @@ export const actions: Actions = {
 		const parsed = settingsFormSchema.safeParse(raw);
 
 		if (!parsed.success) {
+			const errors = parsed.error.flatten().fieldErrors;
+			const first = Object.values(errors).flat()[0];
 			return fail(400, {
-				errors: parsed.error.flatten().fieldErrors,
+				message: first ?? 'Please check your settings and try again.',
+				errors,
 				values: raw
 			});
 		}
 
 		await updateSiteSettings(parsed.data);
-		return { success: true };
+		return { success: true, message: 'Settings saved.' };
 	},
 
 	deleteDrafts: async () => {
 		await deleteAllDrafts();
-		return { draftsDeleted: true };
+		return { success: true, message: 'All draft documents deleted.' };
 	},
 
 	signOut: async (event) => {

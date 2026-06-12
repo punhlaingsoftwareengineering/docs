@@ -26,6 +26,11 @@ export const documentFormSchema = z.object({
 		.union([z.literal('true'), z.literal('false'), z.boolean()])
 		.transform((v) => v === true || v === 'true'),
 	categoryId: z.uuid('Category is required'),
+	parentDocumentId: z
+		.union([z.uuid(), z.literal(''), z.null()])
+		.optional()
+		.transform((v) => (v && v !== '' ? v : null)),
+	sortOrder: z.coerce.number().int().min(0).max(9999).default(0),
 	tags: z.string().optional().default('')
 });
 

@@ -1,7 +1,36 @@
-import { marked } from 'marked';
+import { marked, type Tokens } from 'marked';
 import DOMPurify from 'isomorphic-dompurify';
+import { slugify } from '$lib/utils/slug';
 
 marked.setOptions({ gfm: true, breaks: true });
+
+marked.use({
+	renderer: {
+		heading({ tokens, depth }) {
+			const text = this.parser.parseInline(tokens);
+			const plain = text.replace(/<[^>]+>/g, '');
+			const id = slugify(plain);
+			return `<h${depth} id="${id}">${text}</h${depth}>\n`;
+		}
+	}
+});
+
+export type DocHeading = {
+	id: string;
+	text: string;
+	level: number;
+};
+
+export function extractHeadings(markdown: string): DocHeading[] {
+	const tokens = marked.lexer(markdown);
+	return tokens
+		.filter((token): token is Tokens.Heading => token.type === 'heading')
+		.map((token) => ({
+			level: token.depth,
+			text: token.text,
+			id: slugify(token.text)
+		}));
+}
 
 export function renderMarkdown(markdown: string): string {
 	const raw = marked.parse(markdown, { async: false }) as string;

@@ -1,12 +1,14 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { resolve } from '$app/paths';
+	import FormAlert from '$lib/components/FormAlert.svelte';
 	import SiteNavbar from '$lib/components/layout/SiteNavbar.svelte';
+	import { formEnhance } from '$lib/utils/form-enhance';
 	import type { ActionData, PageData } from './$types';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
 
-	const message = $derived(form?.message ?? data.error ?? '');
+	const loadError = $derived(data.error ?? '');
 </script>
 
 <svelte:head>
@@ -35,14 +37,16 @@
 				</p>
 			</div>
 
-			{#if message}
+			{#if loadError}
 				<div class="alert alert-error text-sm" role="alert">
-					<span>{message}</span>
+					<span>{loadError}</span>
 				</div>
 			{/if}
 
+			<FormAlert {form} />
+
 			{#if data.hasAdmin}
-				<form method="post" action="?/signInGithub" use:enhance>
+				<form method="post" action="?/signInGithub" use:enhance={formEnhance}>
 					<input type="hidden" name="requestSignUp" value="false" />
 					<button type="submit" class="btn btn-primary btn-block gap-2">
 						{@render githubIcon()}
@@ -50,7 +54,7 @@
 					</button>
 				</form>
 			{:else}
-				<form method="post" action="?/signInGithub" use:enhance>
+				<form method="post" action="?/signInGithub" use:enhance={formEnhance}>
 					<input type="hidden" name="requestSignUp" value="true" />
 					<button type="submit" class="btn btn-primary btn-block gap-2">
 						{@render githubIcon()}

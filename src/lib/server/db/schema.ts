@@ -7,7 +7,8 @@ import {
 	integer,
 	uuid,
 	primaryKey,
-	uniqueIndex
+	uniqueIndex,
+	type AnyPgColumn
 } from 'drizzle-orm/pg-core';
 
 export * from './auth.schema';
@@ -31,6 +32,10 @@ export const document = pgTable(
 		categoryId: uuid('category_id')
 			.notNull()
 			.references(() => category.id),
+		parentDocumentId: uuid('parent_document_id').references((): AnyPgColumn => document.id, {
+			onDelete: 'cascade'
+		}),
+		sortOrder: integer('sort_order').notNull().default(0),
 		createdAt: timestamp('created_at').defaultNow().notNull(),
 		updatedAt: timestamp('updated_at')
 			.defaultNow()
@@ -93,6 +98,12 @@ export const documentRelations = relations(document, ({ one, many }) => ({
 		fields: [document.categoryId],
 		references: [category.id]
 	}),
+	parent: one(document, {
+		fields: [document.parentDocumentId],
+		references: [document.id],
+		relationName: 'documentChildren'
+	}),
+	children: many(document, { relationName: 'documentChildren' }),
 	documentTags: many(documentTag)
 }));
 
