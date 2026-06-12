@@ -1,4 +1,5 @@
 import { eq } from 'drizzle-orm';
+import { APP_NAME } from '$lib/config/app-name';
 import { db } from '$lib/server/db';
 import { category, document, siteSettings } from '$lib/server/db/schema';
 
@@ -18,7 +19,7 @@ export async function seedDatabase() {
 
 	await db
 		.insert(siteSettings)
-		.values({ id: 'default' })
+		.values({ id: 'default', siteTitle: APP_NAME })
 		.onConflictDoNothing();
 
 	const [existingDoc] = await db.select().from(document).limit(1);

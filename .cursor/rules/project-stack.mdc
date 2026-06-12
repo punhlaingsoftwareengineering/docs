@@ -21,4 +21,7 @@ alwaysApply: true
 - Use `$app/paths` `resolve()` for typed internal links
 - Use `$app/state` `page` instead of deprecated `$app/stores`
 - Prefer daisyUI component classes over hand-rolled Tailwind for UI primitives
+- Form focus: default daisyUI field rings; joined inputs use `label.input` wrapper — see `daisyui5.mdc`
 - Validate untrusted input with Zod before DB writes or auth calls
+- UI icons: `@lucide/svelte` only — no inline `<svg>` or unicode arrows in components
+- Page titles: `{page content} - {app name}` via `PageTitle` / `formatPageTitle` (see `page-titles.mdc`)

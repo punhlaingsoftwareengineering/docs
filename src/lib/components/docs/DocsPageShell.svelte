@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { Menu } from '@lucide/svelte';
 	import type { Snippet } from 'svelte';
 	import DocsChapterSidebar from '$lib/components/docs/DocsChapterSidebar.svelte';
 	import DocsSidebarToolbar from '$lib/components/docs/DocsSidebarToolbar.svelte';
@@ -45,16 +46,7 @@
 			for="docs-drawer"
 			class="flex h-10 shrink-0 cursor-pointer items-center gap-2 border-b border-base-300 px-4 text-sm text-base-content/70 lg:hidden"
 		>
-			<svg
-				xmlns="http://www.w3.org/2000/svg"
-				class="h-4 w-4"
-				fill="none"
-				viewBox="0 0 24 24"
-				stroke="currentColor"
-				aria-hidden="true"
-			>
-				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-			</svg>
+			<Menu class="h-4 w-4" aria-hidden="true" />
 			Browse docs
 		</label>
 
@@ -75,7 +67,7 @@
 							{@render children()}
 						</article>
 						{#if toc}
-							<aside class="hidden w-44 shrink-0 xl:block">
+							<aside class="hidden w-52 shrink-0 lg:block">
 								<div class="sticky top-6 py-6 lg:py-8">
 									{@render toc()}
 								</div>

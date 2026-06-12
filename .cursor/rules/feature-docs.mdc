@@ -11,3 +11,4 @@ alwaysApply: false
 - `/docs` index supports `?q=` search (Postgres `ilike`)
 - `/docs/[slug]` renders markdown via `$lib/markdown.ts` (marked + DOMPurify)
 - Sidebar groups published docs by category in `+layout.server.ts`
+- `/docs/[slug]` shows a right TOC (page title + markdown H1/H2) at `lg+` via `DocsTableOfContents.svelte`

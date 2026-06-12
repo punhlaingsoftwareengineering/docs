@@ -46,3 +46,31 @@ Prefer semantic daisyUI classes over custom utility stacks:
 - Theme tokens: `bg-base-100`, `text-base-content`, `border-base-300`
 - Combine with Tailwind utilities for layout (`flex`, `gap-4`, `grid`) — not for reinventing buttons/inputs
 - Do not use removed daisyUI 4 patterns (`btn-ghost` still valid; check v5 docs for renamed utilities)
+
+## Focus rings
+
+Use daisyUI’s built-in focus styles for form fields (`2px` outline on the component wrapper). Do not force `input-primary` or custom primary outlines on inputs unless explicitly requested.
+
+**Joined inputs (icon prefix)**
+
+Wrap icon + field in a daisyUI input label — the wrapper gets the focus ring on `:focus-within`:
+
+```svelte
+<label class="input input-bordered flex items-center gap-2">
+  <Search class="h-5 w-5 shrink-0 opacity-50" aria-hidden="true" />
+  <input type="search" class="grow" placeholder="Search…" />
+</label>
+```
+
+See `DocsSearchModal.svelte`. Inner inputs must stay outline-free; [`src/routes/layout.css`](src/routes/layout.css) enforces this for `.input` children.
+
+**Do**
+
+- Use `btn`, `input input-bordered`, `select`, `textarea` for controls — default daisyUI focus applies.
+- Use `btn btn-ghost btn-square` for icon-only controls instead of unstyled `<button>` elements.
+
+**Do not**
+
+- Add `input-primary` to search fields unless the design calls for a primary-tinted border at rest.
+- Put `outline-none` on the outer `.input` wrapper (only the inner native field should suppress its own outline).
+- Stack custom `ring-*` / `focus-within:border-primary` on top of daisyUI input focus — it causes double rings.

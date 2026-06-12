@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
+	import { Pencil, Trash2 } from '@lucide/svelte';
+	import { goto, invalidateAll } from '$app/navigation';
 	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
 	import AdminHeader from '$lib/components/admin/AdminHeader.svelte';
@@ -8,6 +9,8 @@
 
 	let search = $state('');
 	let syncedSearch = $state('');
+	let deletingId = $state<string | null>(null);
+	let errorMessage = $state<string | null>(null);
 
 	$effect(() => {
 		if (data.search !== syncedSearch) {
@@ -34,6 +37,24 @@
 
 		goto(`?${params}`, { replaceState: true, keepFocus: true, noScroll: true });
 	}
+
+	async function deleteDocument(id: string, title: string) {
+		if (!confirm(`Delete "${title}"?`)) return;
+
+		deletingId = id;
+		errorMessage = null;
+
+		const response = await fetch(resolve(`/admin/api/documents/${id}`), { method: 'DELETE' });
+
+		deletingId = null;
+
+		if (!response.ok) {
+			errorMessage = 'Could not delete document.';
+			return;
+		}
+
+		await invalidateAll();
+	}
 </script>
 
 <AdminHeader
@@ -45,6 +66,12 @@
 />
 
 <div class="flex-1 space-y-4 p-6">
+	{#if errorMessage}
+		<div class="alert alert-error" role="alert">
+			<span>{errorMessage}</span>
+		</div>
+	{/if}
+
 	<div class="flex flex-wrap items-center gap-3">
 		<div class="flex flex-1 flex-wrap gap-2">
 			<input
@@ -115,7 +142,24 @@
 								{new Date(doc.updatedAt).toLocaleDateString()}
 							</td>
 							<td>
-								<a href={resolve(`/admin/documents/${doc.id}`)} class="btn btn-ghost btn-xs">Edit</a>
+								<div class="flex justify-end gap-1">
+									<a
+										href={resolve(`/admin/documents/${doc.id}`)}
+										class="btn btn-secondary btn-sm btn-square shrink-0"
+										aria-label="Edit {doc.title}"
+									>
+										<Pencil class="h-4 w-4" aria-hidden="true" />
+									</a>
+									<button
+										type="button"
+										class="btn btn-error btn-sm btn-square shrink-0"
+										aria-label="Delete {doc.title}"
+										disabled={deletingId !== null}
+										onclick={() => deleteDocument(doc.id, doc.title)}
+									>
+										<Trash2 class="h-4 w-4" aria-hidden="true" />
+									</button>
+								</div>
 							</td>
 						</tr>
 					{/each}

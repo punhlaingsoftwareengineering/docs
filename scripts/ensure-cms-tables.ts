@@ -69,7 +69,33 @@ const statements = [
 		ALTER TABLE "document" ADD CONSTRAINT "document_parent_document_id_document_id_fk"
 			FOREIGN KEY ("parent_document_id") REFERENCES "public"."document"("id") ON DELETE cascade ON UPDATE no action;
 	EXCEPTION WHEN duplicate_object THEN NULL;
-	END $$`
+	END $$`,
+	`ALTER TABLE "site_settings" ADD COLUMN IF NOT EXISTS "site_icon_mime" text`,
+	`ALTER TABLE "site_settings" ADD COLUMN IF NOT EXISTS "site_icon_data" text`,
+	`ALTER TABLE "site_settings" ADD COLUMN IF NOT EXISTS "copyright_notice" text DEFAULT 'zarnihlawn.com' NOT NULL`,
+	`ALTER TABLE "site_settings" ADD COLUMN IF NOT EXISTS "hero_search_placeholder" text`,
+	`ALTER TABLE "site_settings" ADD COLUMN IF NOT EXISTS "tech_stack_heading" text`,
+	`ALTER TABLE "site_settings" ADD COLUMN IF NOT EXISTS "tech_stack_items" jsonb`,
+	`ALTER TABLE "site_settings" ADD COLUMN IF NOT EXISTS "features_heading" text`,
+	`ALTER TABLE "site_settings" ADD COLUMN IF NOT EXISTS "features_subtitle" text`,
+	`ALTER TABLE "site_settings" ADD COLUMN IF NOT EXISTS "features_items" jsonb`,
+	`ALTER TABLE "site_settings" ADD COLUMN IF NOT EXISTS "code_preview_heading" text`,
+	`ALTER TABLE "site_settings" ADD COLUMN IF NOT EXISTS "code_preview_subtitle" text`,
+	`ALTER TABLE "site_settings" ADD COLUMN IF NOT EXISTS "code_preview_terminal_label" text`,
+	`ALTER TABLE "site_settings" ADD COLUMN IF NOT EXISTS "code_preview_lines" jsonb`,
+	`ALTER TABLE "site_settings" ADD COLUMN IF NOT EXISTS "docs_categories_heading" text`,
+	`ALTER TABLE "site_settings" ADD COLUMN IF NOT EXISTS "docs_categories_subtitle" text`,
+	`ALTER TABLE "site_settings" ADD COLUMN IF NOT EXISTS "docs_categories_cta_label" text`,
+	`ALTER TABLE "site_settings" ADD COLUMN IF NOT EXISTS "docs_categories_cta_url" text`,
+	`ALTER TABLE "site_settings" ADD COLUMN IF NOT EXISTS "docs_category_descriptions" jsonb`,
+	`ALTER TABLE "site_settings" ADD COLUMN IF NOT EXISTS "landing_cta_heading" text`,
+	`ALTER TABLE "site_settings" ADD COLUMN IF NOT EXISTS "landing_cta_subtitle" text`,
+	`ALTER TABLE "site_settings" ADD COLUMN IF NOT EXISTS "landing_cta_primary_label" text`,
+	`ALTER TABLE "site_settings" ADD COLUMN IF NOT EXISTS "landing_cta_primary_url" text`,
+	`ALTER TABLE "site_settings" ADD COLUMN IF NOT EXISTS "landing_cta_secondary_label" text`,
+	`ALTER TABLE "site_settings" ADD COLUMN IF NOT EXISTS "landing_cta_secondary_url" text`,
+	`ALTER TABLE "site_settings" ADD COLUMN IF NOT EXISTS "footer_social_enabled" boolean DEFAULT false NOT NULL`,
+	`ALTER TABLE "site_settings" ADD COLUMN IF NOT EXISTS "footer_social_links" jsonb`
 ];
 
 for (const statement of statements) {

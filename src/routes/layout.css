@@ -8,3 +8,12 @@
 .prose :is(h1, h2, h3, h4, h5, h6) {
 	scroll-margin-top: 6rem;
 }
+
+/* Joined daisyUI inputs: only the wrapper shows the focus ring, not the inner field */
+@layer components {
+	.input :where(input, textarea, select):focus,
+	.input :where(input, textarea, select):focus-visible {
+		outline: none;
+		box-shadow: none;
+	}
+}

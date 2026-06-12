@@ -8,8 +8,11 @@ import {
 	uuid,
 	primaryKey,
 	uniqueIndex,
+	jsonb,
 	type AnyPgColumn
 } from 'drizzle-orm/pg-core';
+import type { FooterSocialLink } from '$lib/types/footer';
+import type { LandingFeature } from '$lib/types/landing';
 
 export * from './auth.schema';
 
@@ -81,8 +84,34 @@ export const siteSettings = pgTable('site_settings', {
 	heroPrimaryUrl: text('hero_primary_url').notNull().default('/docs'),
 	heroSecondaryCta: text('hero_secondary_cta').notNull().default('Admin sign in'),
 	heroSecondaryUrl: text('hero_secondary_url').notNull().default('/login'),
+	heroSearchPlaceholder: text('hero_search_placeholder'),
+	techStackHeading: text('tech_stack_heading'),
+	techStackItems: jsonb('tech_stack_items').$type<string[]>(),
+	featuresHeading: text('features_heading'),
+	featuresSubtitle: text('features_subtitle'),
+	featuresItems: jsonb('features_items').$type<LandingFeature[]>(),
+	codePreviewHeading: text('code_preview_heading'),
+	codePreviewSubtitle: text('code_preview_subtitle'),
+	codePreviewTerminalLabel: text('code_preview_terminal_label'),
+	codePreviewLines: jsonb('code_preview_lines').$type<string[]>(),
+	docsCategoriesHeading: text('docs_categories_heading'),
+	docsCategoriesSubtitle: text('docs_categories_subtitle'),
+	docsCategoriesCtaLabel: text('docs_categories_cta_label'),
+	docsCategoriesCtaUrl: text('docs_categories_cta_url'),
+	docsCategoryDescriptions: jsonb('docs_category_descriptions').$type<Record<string, string>>(),
+	landingCtaHeading: text('landing_cta_heading'),
+	landingCtaSubtitle: text('landing_cta_subtitle'),
+	landingCtaPrimaryLabel: text('landing_cta_primary_label'),
+	landingCtaPrimaryUrl: text('landing_cta_primary_url'),
+	landingCtaSecondaryLabel: text('landing_cta_secondary_label'),
+	landingCtaSecondaryUrl: text('landing_cta_secondary_url'),
 	defaultPublished: boolean('default_published').notNull().default(false),
 	defaultTheme: text('default_theme').notNull().default('system'),
+	siteIconMime: text('site_icon_mime'),
+	siteIconData: text('site_icon_data'),
+	copyrightNotice: text('copyright_notice').notNull().default('zarnihlawn.com'),
+	footerSocialEnabled: boolean('footer_social_enabled').notNull().default(false),
+	footerSocialLinks: jsonb('footer_social_links').$type<FooterSocialLink[]>(),
 	updatedAt: timestamp('updated_at')
 		.defaultNow()
 		.$onUpdate(() => new Date())

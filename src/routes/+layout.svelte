@@ -9,14 +9,19 @@
 	import './layout.css';
 	import favicon from '$lib/assets/favicon.svg';
 
-	let { children } = $props();
+	let { data, children } = $props();
+
+	const iconHref = $derived(data.site.siteIconHref ?? favicon);
 
 	onMount(() => {
 		applyTheme(getStoredTheme());
 	});
 </script>
 
-<svelte:head><link rel="icon" href={favicon} /></svelte:head>
+<svelte:head>
+	<link rel="icon" href={iconHref} />
+	<link rel="apple-touch-icon" href={iconHref} />
+</svelte:head>
 
 <div class="flex min-h-screen flex-col bg-base-100 text-base-content">
 	{@render children()}

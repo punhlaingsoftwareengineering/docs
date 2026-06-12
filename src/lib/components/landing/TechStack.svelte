@@ -1,14 +1,20 @@
 <script lang="ts">
-	const stack = ['SvelteKit', 'Markdown', 'Drizzle', 'Better Auth', 'Tailwind', 'daisyUI'] as const;
+	let {
+		heading,
+		items
+	}: {
+		heading: string;
+		items: string[];
+	} = $props();
 </script>
 
 <section class="border-y border-base-300 bg-base-100 px-4 py-10 lg:px-8">
 	<div class="mx-auto max-w-6xl">
 		<p class="mb-6 text-center text-sm font-medium tracking-wide text-base-content/50 uppercase">
-			Powered by a modern docs stack
+			{heading}
 		</p>
 		<div class="flex flex-wrap items-center justify-center gap-3">
-			{#each stack as item (item)}
+			{#each items as item (item)}
 				<span class="badge badge-lg badge-outline font-mono">{item}</span>
 			{/each}
 		</div>

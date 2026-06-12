@@ -21,10 +21,14 @@ export type DocHeading = {
 	level: number;
 };
 
-export function extractHeadings(markdown: string): DocHeading[] {
+export function extractHeadings(
+	markdown: string,
+	options?: { maxLevel?: number }
+): DocHeading[] {
+	const maxLevel = options?.maxLevel ?? 6;
 	const tokens = marked.lexer(markdown);
 	return tokens
-		.filter((token): token is Tokens.Heading => token.type === 'heading')
+		.filter((token): token is Tokens.Heading => token.type === 'heading' && token.depth <= maxLevel)
 		.map((token) => ({
 			level: token.depth,
 			text: token.text,

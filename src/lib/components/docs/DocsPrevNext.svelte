@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { ChevronLeft, ChevronRight } from '@lucide/svelte';
 	import { resolve } from '$app/paths';
 	import type { DocNavItem } from '$lib/types/docs-tree';
 
@@ -22,7 +23,10 @@
 				class="rounded-box border border-base-300 p-4 transition-colors hover:border-primary hover:bg-base-200/40"
 			>
 				<span class="block text-xs text-base-content/60">Previous</span>
-				<span class="mt-1 block font-medium">← {prev.title}</span>
+				<span class="mt-1 flex items-center gap-1.5 font-medium">
+					<ChevronLeft class="h-4 w-4 shrink-0" aria-hidden="true" />
+					{prev.title}
+				</span>
 			</a>
 		{:else}
 			<div></div>
@@ -33,7 +37,10 @@
 				class="rounded-box border border-base-300 p-4 text-right transition-colors hover:border-primary hover:bg-base-200/40 sm:col-start-2"
 			>
 				<span class="block text-xs text-base-content/60">Next</span>
-				<span class="mt-1 block font-medium">{next.title} →</span>
+				<span class="mt-1 flex items-center justify-end gap-1.5 font-medium">
+					{next.title}
+					<ChevronRight class="h-4 w-4 shrink-0" aria-hidden="true" />
+				</span>
 			</a>
 		{/if}
 	</nav>

@@ -1,0 +1,22 @@
+---
+description: Browser page title format and helpers
+alwaysApply: true
+---
+
+# Page titles
+
+Every route must set the browser `<title>` as:
+
+```text
+{page content} - {application name}
+```
+
+## Rules
+
+- Use a **short hyphen** (`-`) only — never em dash (`—`) or en dash (`–`) in `<title>` tags
+- Application name = `data.site.appName` (from `PUBLIC_APP_NAME` env via root layout)
+- Use `formatPageTitle()` from `$lib/utils/page-title.ts` or `<PageTitle>` from `$lib/components/PageTitle.svelte` — do not hand-roll `<title>` strings in routes
+- Admin pages: set the title in `AdminHeader.svelte` via its `title` prop (already wired)
+- Error pages: use `src/routes/+error.svelte` with `PageTitle`
+
+Em dashes in body copy and UI labels are fine; this rule applies to document `<title>` only.

@@ -13,5 +13,10 @@ export const variables = defineEnvVars({
 	},
 	GITHUB_CLIENT_SECRET: {
 		description: 'GitHub OAuth client secret. See [Better Auth GitHub provider](https://www.better-auth.com/docs/authentication/github).'
+	},
+	PUBLIC_APP_NAME: {
+		description: 'Default application name used in page titles and branding fallbacks.',
+		public: true,
+		default: 'zarnihlawn docs'
 	}
 });

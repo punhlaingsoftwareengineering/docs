@@ -1,0 +1,32 @@
+---
+description: Admin invisible-table form layout — 4-column grid, AdminFormTable, full width
+globs: "src/routes/admin/**,src/lib/components/admin/**"
+alwaysApply: false
+---
+
+# Admin form table layout
+
+Use **`AdminFormTable`** (`$lib/components/admin/AdminFormTable.svelte`) for admin settings and CRUD forms. Do not use `grid`/`form-control` stacks for multi-field admin forms.
+
+## Grid
+
+Fixed **4 columns**: `label | field | label | field`
+
+- One field pair = 2 cells (label + field). Never `colspan="2"` on a single field.
+- Full-width field: label in col 1, field `colspan="3"`.
+- Action button in second pair: empty col 3 (`aria-hidden="true"`), control in col 4 (e.g. Sort order row → Add category under Slug).
+- Checkbox in second pair: empty `colspan="2"` on cols 1–2, label col 3, checkbox col 4.
+
+## Cell classes
+
+- Label: `td.align-middle.p-0` + `label.py-0`
+- Field: `td.min-w-0.p-0` + input `w-full`
+- Table wrapper: `w-full table-fixed`; form/section: `w-full min-w-0`
+
+## Row order (document forms)
+
+Title+Slug → Category+Parent → Tags+Published → Excerpt (full width). Document sort order is managed on the dashboard via drag-and-drop.
+
+## Reference
+
+See `.cursor/skills/admin-form-table/SKILL.md` for templates and anti-patterns.

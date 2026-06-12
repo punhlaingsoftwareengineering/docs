@@ -1,7 +1,14 @@
 import { and, asc, desc, eq, ilike, isNull, or, sql } from 'drizzle-orm';
 import { db } from '$lib/server/db';
 import { category, document, documentTag, tag } from '$lib/server/db/schema';
-import type { DocNavItem, DocTreeNode, ParentOption, SidebarGroup } from '$lib/types/docs-tree';
+import type {
+	DocNavItem,
+	DocTreeNode,
+	DocumentOrderGroup,
+	ParentOption,
+	SidebarGroup
+} from '$lib/types/docs-tree';
+import { flattenCategoryDocumentsForOrder } from '$lib/utils/document-order';
 import { slugify } from '$lib/utils/slug';
 
 export const MAX_DOCUMENT_DEPTH = 3;
@@ -476,6 +483,75 @@ type DocumentWriteData = {
 	tags?: string;
 };
 
+async function nextSiblingSortOrder(categoryId: string, parentDocumentId: string | null) {
+	const condition = and(
+		eq(document.categoryId, categoryId),
+		parentDocumentId
+			? eq(document.parentDocumentId, parentDocumentId)
+			: isNull(document.parentDocumentId)
+	);
+	const [row] = await db
+		.select({ max: sql<number>`coalesce(max(${document.sortOrder}), -1)` })
+		.from(document)
+		.where(condition);
+	return (row?.max ?? -1) + 1;
+}
+
+export async function listDocumentOrderGroups(): Promise<DocumentOrderGroup[]> {
+	const [categories, docs] = await Promise.all([
+		db.select().from(category).orderBy(asc(category.sortOrder)),
+		db
+			.select({
+				id: document.id,
+				slug: document.slug,
+				title: document.title,
+				published: document.published,
+				categoryId: document.categoryId,
+				parentDocumentId: document.parentDocumentId,
+				sortOrder: document.sortOrder
+			})
+			.from(document)
+			.orderBy(asc(document.sortOrder), asc(document.title))
+	]);
+
+	return categories.map((cat) => ({
+		categoryId: cat.id,
+		categoryName: cat.name,
+		items: flattenCategoryDocumentsForOrder(docs.filter((doc) => doc.categoryId === cat.id))
+	}));
+}
+
+export async function reorderSiblingDocuments(input: {
+	categoryId: string;
+	parentDocumentId: string | null;
+	orderedIds: string[];
+}) {
+	const { categoryId, parentDocumentId, orderedIds } = input;
+	const condition = and(
+		eq(document.categoryId, categoryId),
+		parentDocumentId
+			? eq(document.parentDocumentId, parentDocumentId)
+			: isNull(document.parentDocumentId)
+	);
+
+	const siblings = await db.select({ id: document.id }).from(document).where(condition);
+	const siblingIds = new Set(siblings.map((row) => row.id));
+
+	if (orderedIds.length !== siblings.length) {
+		throw new Error('Reorder list must include every sibling document.');
+	}
+	if (!orderedIds.every((id) => siblingIds.has(id))) {
+		throw new Error('Documents must stay within the same parent and category.');
+	}
+
+	// neon-http driver does not support transactions; parallel updates are fine here.
+	await Promise.all(
+		orderedIds.map((id, index) =>
+			db.update(document).set({ sortOrder: index }).where(eq(document.id, id))
+		)
+	);
+}
+
 export async function createDocument(data: DocumentWriteData) {
 	const hierarchy = await validateDocumentHierarchy({
 		parentDocumentId: data.parentDocumentId ?? null,
@@ -484,6 +560,7 @@ export async function createDocument(data: DocumentWriteData) {
 	if (!hierarchy.valid) throw new Error(hierarchy.message);
 
 	const slug = data.slug?.trim() || slugify(data.title);
+	const sortOrder = await nextSiblingSortOrder(data.categoryId, data.parentDocumentId ?? null);
 	const [row] = await db
 		.insert(document)
 		.values({
@@ -494,7 +571,7 @@ export async function createDocument(data: DocumentWriteData) {
 			published: data.published,
 			categoryId: data.categoryId,
 			parentDocumentId: data.parentDocumentId ?? null,
-			sortOrder: data.sortOrder ?? 0
+			sortOrder
 		})
 		.returning();
 
@@ -517,6 +594,12 @@ export async function updateDocument(id: string, data: DocumentWriteData & { con
 	if (!hierarchy.valid) throw new Error(hierarchy.message);
 
 	const slug = data.slug?.trim() || slugify(data.title);
+	const [existing] = await db
+		.select({ sortOrder: document.sortOrder })
+		.from(document)
+		.where(eq(document.id, id))
+		.limit(1);
+
 	await db
 		.update(document)
 		.set({
@@ -527,7 +610,7 @@ export async function updateDocument(id: string, data: DocumentWriteData & { con
 			published: data.published,
 			categoryId: data.categoryId,
 			parentDocumentId: data.parentDocumentId ?? null,
-			sortOrder: data.sortOrder ?? 0
+			sortOrder: existing?.sortOrder ?? 0
 		})
 		.where(eq(document.id, id));
 

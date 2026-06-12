@@ -7,6 +7,16 @@ function getSubmitButton(formElement: HTMLFormElement, submitter: HTMLElement | 
 	return formElement.querySelector<HTMLButtonElement>('button[type="submit"]');
 }
 
+export function confirmEnhance(message: string | (() => string)): SubmitFunction {
+	return (input) => {
+		if (!confirm(typeof message === 'function' ? message() : message)) {
+			input.cancel();
+			return;
+		}
+		return formEnhance(input);
+	};
+}
+
 export const formEnhance: SubmitFunction = ({ formElement, submitter }) => {
 	const button = getSubmitButton(formElement, submitter);
 

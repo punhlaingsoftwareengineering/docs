@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { ArrowDown, ArrowUp, CornerDownLeft, Search } from '@lucide/svelte';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { closeDocsSearch, docsSearch } from '$lib/state/docs-search.svelte';
@@ -95,29 +96,17 @@
 >
 	<div class="modal-box max-w-xl p-0">
 		<div class="flex items-center gap-3 border-b border-base-300 px-4 py-3">
-			<svg
-				xmlns="http://www.w3.org/2000/svg"
-				class="h-5 w-5 shrink-0 text-base-content/50"
-				fill="none"
-				viewBox="0 0 24 24"
-				stroke="currentColor"
-				aria-hidden="true"
-			>
-				<path
-					stroke-linecap="round"
-					stroke-linejoin="round"
-					stroke-width="2"
-					d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
+			<label class="input input-bordered flex min-w-0 flex-1 items-center gap-2">
+				<Search class="h-5 w-5 shrink-0 opacity-50" aria-hidden="true" />
+				<input
+					type="search"
+					class="grow"
+					placeholder="Search documentation…"
+					value={query}
+					oninput={(e) => onQueryInput(e.currentTarget.value)}
 				/>
-			</svg>
-			<input
-				type="search"
-				class="grow bg-transparent text-base outline-none"
-				placeholder="Search documentation…"
-				value={query}
-				oninput={(e) => onQueryInput(e.currentTarget.value)}
-			/>
-			<kbd class="kbd kbd-sm hidden sm:inline-flex">esc</kbd>
+			</label>
+			<kbd class="kbd kbd-sm hidden shrink-0 sm:inline-flex">esc</kbd>
 		</div>
 
 		<div class="max-h-80 overflow-y-auto p-2">
@@ -133,7 +122,7 @@
 						<li class="w-full">
 							<button
 								type="button"
-								class="flex w-full flex-col items-start gap-1 rounded-lg px-3 py-2.5 text-left transition-colors"
+								class="flex w-full flex-col items-start gap-1 rounded-lg px-3 py-2.5 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-base-content/30"
 								class:bg-base-200={i === activeIndex}
 								onclick={() => navigateTo(result)}
 								onmouseenter={() => (activeIndex = i)}
@@ -153,8 +142,15 @@
 		</div>
 
 		<div class="flex items-center justify-between border-t border-base-300 px-4 py-2 text-xs text-base-content/50">
-			<span><kbd class="kbd kbd-xs">↑</kbd> <kbd class="kbd kbd-xs">↓</kbd> navigate</span>
-			<span><kbd class="kbd kbd-xs">↵</kbd> open</span>
+			<span class="inline-flex items-center gap-1">
+				<ArrowUp class="h-3 w-3" aria-hidden="true" />
+				<ArrowDown class="h-3 w-3" aria-hidden="true" />
+				navigate
+			</span>
+			<span class="inline-flex items-center gap-1">
+				<CornerDownLeft class="h-3 w-3" aria-hidden="true" />
+				open
+			</span>
 		</div>
 	</div>
 	<form method="dialog" class="modal-backdrop">

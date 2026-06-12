@@ -35,3 +35,9 @@ export const documentFormSchema = z.object({
 });
 
 export type DocumentFormInput = z.infer<typeof documentFormSchema>;
+
+export const reorderDocumentsSchema = z.object({
+	categoryId: z.uuid(),
+	parentDocumentId: z.union([z.uuid(), z.null()]),
+	orderedIds: z.array(z.uuid()).min(1)
+});

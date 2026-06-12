@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { Search } from '@lucide/svelte';
 	import { resolve } from '$app/paths';
 	import { openDocsSearch } from '$lib/state/docs-search.svelte';
 
@@ -9,6 +10,7 @@
 		heroPrimaryUrl,
 		heroSecondaryCta,
 		heroSecondaryUrl,
+		searchPlaceholder,
 		tagline,
 		showSecondaryCta = true
 	}: {
@@ -18,6 +20,7 @@
 		heroPrimaryUrl: string;
 		heroSecondaryCta: string;
 		heroSecondaryUrl: string;
+		searchPlaceholder: string;
 		tagline: string;
 		showSecondaryCta?: boolean;
 	} = $props();
@@ -47,27 +50,17 @@
 		<div class="mt-10 w-full max-w-xl">
 			<button
 				type="button"
-				class="input input-bordered flex w-full items-center gap-3 text-left transition-colors hover:border-primary focus-within:border-primary"
+				class="input input-bordered flex w-full items-center gap-3 text-left transition-colors"
 				aria-label="Search documentation"
 				onclick={() => openDocsSearch()}
 			>
-				<svg
-					xmlns="http://www.w3.org/2000/svg"
-					class="h-5 w-5 shrink-0 text-base-content/50"
-					fill="none"
-					viewBox="0 0 24 24"
-					stroke="currentColor"
-					aria-hidden="true"
-				>
-					<path
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						stroke-width="2"
-						d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
-					/>
-				</svg>
-				<span class="text-base-content/50">Search documentation…</span>
-				<kbd class="kbd kbd-sm ml-auto hidden sm:inline-flex">⌘K</kbd>
+				<Search class="h-5 w-5 shrink-0 text-base-content/50" aria-hidden="true" />
+				<span class="text-base-content/50">{searchPlaceholder}</span>
+				<span class="ml-auto hidden items-center gap-1 sm:inline-flex">
+					<kbd class="kbd">ctrl</kbd>
+					<span class="text-base-content/50">+</span>
+					<kbd class="kbd">k</kbd>
+				</span>
 			</button>
 		</div>
 
