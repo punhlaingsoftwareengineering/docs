@@ -13,15 +13,14 @@ alwaysApply: false
 
 ## Tables
 
-- `category` — fixed seed: getting-started, guides, reference, examples, changelog
-- `document` — slug unique, title, content (markdown), excerpt, published, categoryId
-- `tag` + `document_tag` — many-to-many tags on documents
+- `category` — name, slug, sort order (managed in admin)
+- `document` — slug unique, title, content (markdown body or optional notes for media pages), `contentType` (`markdown` | `pdf` | `video` | `audio` | `image` | `office`, default `markdown`), `mediaUrl` (`http://` or `https://` URL when not markdown), excerpt, published, categoryId
+- `tag` + `document_tag` — many-to-many tags on documents (`document_tag` uses a UUID primary key with a unique pair index on document + tag)
 - `site_settings` — site branding, landing hero, defaults
 
 ## Migrations
 
-- Use `pnpm run db:generate` then `pnpm run db:push --force` for schema changes
-- Seed categories and default settings in `src/lib/server/db/seed.ts`
+- Use `pnpm run db:generate` then `pnpm run db:push` for schema changes
 
 ## Slugs
 

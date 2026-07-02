@@ -1,63 +1,37 @@
-import { fail, isRedirect, redirect } from '@sveltejs/kit';
-import type { Actions, PageServerLoad } from './$types';
+import { redirect } from '@sveltejs/kit';
+import type { PageServerLoad } from './$types';
 import { auth } from '$lib/server/auth';
-import { hasAdmin } from '$lib/server/users';
-import { APIError } from 'better-auth/api';
+import { isAdminUser, isRegularUser } from '$lib/server/users';
+
+const oauthErrors: Record<string, string> = {
+	signup_disabled: 'Registration is by invitation only.',
+	invalid_code: 'GitHub sign-in expired. Please try again.',
+	email_not_found:
+		'GitHub did not return an email for this account. Make sure your GitHub email is visible to the OAuth app.',
+	state_mismatch: 'GitHub sign-in could not be verified. Please try again.',
+	no_code: 'GitHub sign-in was cancelled or incomplete. Please try again.'
+};
 
 export const load: PageServerLoad = async (event) => {
 	if (event.locals.user) {
-		return redirect(302, '/admin');
+		if (isAdminUser(event.locals.user)) {
+			return redirect(302, '/admin');
+		}
+
+		if (isRegularUser(event.locals.user)) {
+			return redirect(302, '/');
+		}
+
+		await auth.api.signOut({ headers: event.request.headers });
 	}
 
-	const adminExists = await hasAdmin();
 	const error = event.url.searchParams.get('error');
+	const errorDescription = event.url.searchParams.get('error_description');
 
 	return {
-		hasAdmin: adminExists,
-		error: error === 'signup_disabled' ? 'Only the site owner can sign in with GitHub.' : null
+		error:
+			oauthErrors[error ?? ''] ??
+			(errorDescription ? decodeURIComponent(errorDescription.replace(/\+/g, ' ')) : null) ??
+			(error ? 'GitHub sign-in failed. Please try again.' : null)
 	};
-};
-
-export const actions: Actions = {
-	signInGithub: async (event) => {
-		const formData = await event.request.formData();
-		const requestSignUp = formData.get('requestSignUp') === 'true';
-		const adminExists = await hasAdmin();
-
-		if (requestSignUp && adminExists) {
-			return fail(400, {
-				message: 'An admin account already exists. Sign in with GitHub instead.'
-			});
-		}
-
-		if (!requestSignUp && !adminExists) {
-			return fail(400, {
-				message: 'Create the admin account first using Sign up with GitHub.'
-			});
-		}
-
-		try {
-			const result = await auth.api.signInSocial({
-				body: {
-					provider: 'github',
-					callbackURL: '/admin',
-					requestSignUp
-				},
-				headers: event.request.headers
-			});
-
-			if (result.url) {
-				return redirect(302, result.url);
-			}
-
-			return fail(400, { message: 'Could not start GitHub sign-in.' });
-		} catch (error) {
-			if (isRedirect(error)) throw error;
-			if (error instanceof APIError) {
-				return fail(400, { message: error.message || 'GitHub sign-in failed' });
-			}
-			console.error('GitHub sign-in failed:', error);
-			return fail(500, { message: 'Could not start GitHub sign-in. Check server logs.' });
-		}
-	}
 };

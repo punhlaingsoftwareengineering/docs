@@ -5,11 +5,9 @@ const footerSocialLinkSchema = z.object({
 	url: z.string().min(1).max(500)
 });
 
-const landingFeatureSchema = z.object({
-	title: z.string().min(1).max(100),
-	description: z.string().max(500),
-	badge: z.string().max(50),
-	href: z.string().min(1).max(200)
+const navLinkSchema = z.object({
+	label: z.string().min(1).max(50),
+	url: z.string().min(1).max(500)
 });
 
 function parseJsonField<T>(value: unknown, schema: z.ZodType<T>, label: string): T {
@@ -42,6 +40,10 @@ export const settingsFormSchema = z
 			.union([z.literal('true'), z.literal('false'), z.boolean()])
 			.transform((v) => v === true || v === 'true'),
 		footerSocialLinks: z.string().max(5000),
+		navLinksEnabled: z
+			.union([z.literal('true'), z.literal('false'), z.boolean()])
+			.transform((v) => v === true || v === 'true'),
+		navLinks: z.string().max(5000),
 		metaDescription: z.string().max(300),
 		heroTitle: z.string().min(1).max(200),
 		heroSubtitle: z.string().max(500),
@@ -54,11 +56,9 @@ export const settingsFormSchema = z
 		techStackItems: z.string().min(1).max(2000),
 		featuresHeading: z.string().min(1).max(200),
 		featuresSubtitle: z.string().max(500),
-		featuresItems: z.string().min(2).max(10000),
 		codePreviewHeading: z.string().min(1).max(200),
 		codePreviewSubtitle: z.string().max(500),
-		codePreviewTerminalLabel: z.string().min(1).max(100),
-		codePreviewLines: z.string().min(1).max(10000),
+		welcomeVideoUrl: z.string().max(2048).optional().or(z.literal('')),
 		docsCategoriesHeading: z.string().min(1).max(200),
 		docsCategoriesSubtitle: z.string().max(500),
 		docsCategoriesCtaLabel: z.string().min(1).max(50),
@@ -76,12 +76,6 @@ export const settingsFormSchema = z
 		defaultTheme: z.enum(['winter', 'night', 'system'])
 	})
 	.transform((data) => {
-		const featuresItems = parseJsonField(
-			data.featuresItems,
-			z.array(landingFeatureSchema).min(1).max(12),
-			'Features'
-		);
-
 		let docsCategoryDescriptions: Record<string, string> = {};
 		if (data.docsCategoryDescriptions.trim()) {
 			docsCategoryDescriptions = parseJsonField(
@@ -100,9 +94,17 @@ export const settingsFormSchema = z
 			throw new Error('Tech stack items must include at least one line.');
 		}
 
-		const codePreviewLines = data.codePreviewLines.split('\n');
-		if (codePreviewLines.length === 0) {
-			throw new Error('Code preview content must include at least one line.');
+		const welcomeVideoUrl = data.welcomeVideoUrl?.trim() ?? '';
+		if (welcomeVideoUrl) {
+			try {
+				const parsed = new URL(welcomeVideoUrl);
+				if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+					throw new Error('Welcome video URL must start with http:// or https://');
+				}
+			} catch (error) {
+				if (error instanceof Error && error.message.includes('http')) throw error;
+				throw new Error('Welcome video URL must be a valid http:// or https:// link.');
+			}
 		}
 
 		let footerSocialLinks: z.infer<typeof footerSocialLinkSchema>[] = [];
@@ -114,13 +116,18 @@ export const settingsFormSchema = z
 			);
 		}
 
+		let navLinks: z.infer<typeof navLinkSchema>[] = [];
+		if (data.navLinks.trim()) {
+			navLinks = parseJsonField(data.navLinks, z.array(navLinkSchema).max(12), 'Navbar links');
+		}
+
 		return {
 			...data,
 			techStackItems,
-			featuresItems,
-			codePreviewLines,
+			welcomeVideoUrl: welcomeVideoUrl || null,
 			docsCategoryDescriptions,
-			footerSocialLinks
+			footerSocialLinks,
+			navLinks
 		};
 	});
 

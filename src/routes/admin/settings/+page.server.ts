@@ -30,7 +30,9 @@ export const actions: Actions = {
 			const errors = parsed.error.flatten().fieldErrors;
 			const formErrors = parsed.error.flatten().formErrors;
 			const first =
-				formErrors[0] ?? Object.values(errors).flat()[0] ?? 'Please check your settings and try again.';
+				formErrors[0] ??
+				Object.values(errors).flat()[0] ??
+				'Please check your settings and try again.';
 			return fail(400, {
 				message: first,
 				errors,

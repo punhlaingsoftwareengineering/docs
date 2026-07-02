@@ -2,6 +2,7 @@ import { and, asc, desc, eq, ilike, isNull, or, sql } from 'drizzle-orm';
 import { db } from '$lib/server/db';
 import { category, document, documentTag, tag } from '$lib/server/db/schema';
 import type {
+	CategoryListingItem,
 	DocNavItem,
 	DocTreeNode,
 	DocumentOrderGroup,
@@ -10,6 +11,7 @@ import type {
 } from '$lib/types/docs-tree';
 import { flattenCategoryDocumentsForOrder } from '$lib/utils/document-order';
 import { slugify } from '$lib/utils/slug';
+import { isMediaContentType } from '$lib/constants/document-content';
 
 export const MAX_DOCUMENT_DEPTH = 3;
 
@@ -32,6 +34,8 @@ const documentListSelect = {
 	slug: document.slug,
 	title: document.title,
 	excerpt: document.excerpt,
+	contentType: document.contentType,
+	mediaUrl: document.mediaUrl,
 	published: document.published,
 	updatedAt: document.updatedAt,
 	parentDocumentId: document.parentDocumentId,
@@ -40,11 +44,13 @@ const documentListSelect = {
 	categorySlug: category.slug
 };
 
-export async function listDocuments(options: {
-	filter?: DocumentListFilter;
-	search?: string;
-	sort?: 'updated' | 'title' | 'category';
-} = {}) {
+export async function listDocuments(
+	options: {
+		filter?: DocumentListFilter;
+		search?: string;
+		sort?: 'updated' | 'title' | 'category';
+	} = {}
+) {
 	const { filter = 'all', search = '', sort = 'updated' } = options;
 
 	const conditions = [];
@@ -53,7 +59,12 @@ export async function listDocuments(options: {
 	if (search.trim()) {
 		const q = `%${search.trim()}%`;
 		conditions.push(
-			or(ilike(document.title, q), ilike(document.content, q), ilike(document.excerpt, q))
+			or(
+				ilike(document.title, q),
+				ilike(document.content, q),
+				ilike(document.excerpt, q),
+				ilike(document.mediaUrl, q)
+			)
 		);
 	}
 
@@ -91,7 +102,12 @@ export async function searchPublishedDocuments(query: string) {
 		.where(
 			and(
 				eq(document.published, true),
-				or(ilike(document.title, q), ilike(document.content, q), ilike(document.excerpt, q))
+				or(
+					ilike(document.title, q),
+					ilike(document.content, q),
+					ilike(document.excerpt, q),
+					ilike(document.mediaUrl, q)
+				)
 			)
 		)
 		.orderBy(asc(document.title));
@@ -185,6 +201,38 @@ export function computeSubtreeMaxDepth(
 	return max - rootDepth + 1;
 }
 
+type CategoryListingRow = Pick<
+	DocumentTreeRow,
+	'id' | 'slug' | 'title' | 'parentDocumentId' | 'sortOrder'
+> & { excerpt: string | null };
+
+export function buildCategoryListingTree(docs: CategoryListingRow[]): CategoryListingItem[] {
+	const childrenByParent = new Map<string, CategoryListingRow[]>();
+
+	for (const doc of docs) {
+		if (!doc.parentDocumentId) continue;
+		const siblings = childrenByParent.get(doc.parentDocumentId) ?? [];
+		siblings.push(doc);
+		childrenByParent.set(doc.parentDocumentId, siblings);
+	}
+
+	for (const siblings of childrenByParent.values()) {
+		siblings.sort((a, b) => a.sortOrder - b.sortOrder || a.title.localeCompare(b.title));
+	}
+
+	function toNode(doc: CategoryListingRow, depth: number): CategoryListingItem {
+		const children =
+			depth >= MAX_DOCUMENT_DEPTH
+				? []
+				: (childrenByParent.get(doc.id) ?? []).map((child) => toNode(child, depth + 1));
+		return { slug: doc.slug, title: doc.title, excerpt: doc.excerpt, children };
+	}
+
+	const roots = docs.filter((doc) => !doc.parentDocumentId);
+	roots.sort((a, b) => a.sortOrder - b.sortOrder || a.title.localeCompare(b.title));
+	return roots.map((root) => toNode(root, 1));
+}
+
 export function buildDocumentTree(
 	docs: Pick<DocumentTreeRow, 'id' | 'slug' | 'title' | 'parentDocumentId' | 'sortOrder'>[]
 ): DocTreeNode[] {
@@ -262,7 +310,10 @@ export async function getFirstPublishedDocument() {
 	return docs[0] ?? null;
 }
 
-export async function getDocumentAncestors(slug: string, options?: { includeUnpublished?: boolean }) {
+export async function getDocumentAncestors(
+	slug: string,
+	options?: { includeUnpublished?: boolean }
+) {
 	const doc = await getDocumentBySlug(slug, { includeUnpublished: options?.includeUnpublished });
 	if (!doc) return [];
 
@@ -373,7 +424,10 @@ export async function getDocumentDepth(id: string): Promise<number> {
 	return computeDepthMap(allDocs).get(id) ?? 1;
 }
 
-export async function listParentDocuments(options?: { categoryId?: string; includeUnpublished?: boolean }) {
+export async function listParentDocuments(options?: {
+	categoryId?: string;
+	includeUnpublished?: boolean;
+}) {
 	const conditions = [isNull(document.parentDocumentId)];
 	if (options?.categoryId) conditions.push(eq(document.categoryId, options.categoryId));
 	if (!options?.includeUnpublished) conditions.push(eq(document.published, true));
@@ -431,6 +485,8 @@ export async function getDocumentBySlug(slug: string, options?: { includeUnpubli
 			slug: document.slug,
 			title: document.title,
 			content: document.content,
+			contentType: document.contentType,
+			mediaUrl: document.mediaUrl,
 			excerpt: document.excerpt,
 			published: document.published,
 			updatedAt: document.updatedAt,
@@ -474,6 +530,8 @@ async function syncDocumentTags(documentId: string, tagNames: string[]) {
 type DocumentWriteData = {
 	title: string;
 	slug?: string;
+	contentType?: string;
+	mediaUrl?: string;
 	content?: string;
 	excerpt?: string;
 	published: boolean;
@@ -561,12 +619,16 @@ export async function createDocument(data: DocumentWriteData) {
 
 	const slug = data.slug?.trim() || slugify(data.title);
 	const sortOrder = await nextSiblingSortOrder(data.categoryId, data.parentDocumentId ?? null);
+	const contentType = data.contentType ?? 'markdown';
+	const mediaUrl = isMediaContentType(contentType) ? data.mediaUrl?.trim() || null : null;
 	const [row] = await db
 		.insert(document)
 		.values({
 			title: data.title,
 			slug,
 			content: data.content ?? '',
+			contentType,
+			mediaUrl,
 			excerpt: data.excerpt || null,
 			published: data.published,
 			categoryId: data.categoryId,
@@ -594,6 +656,8 @@ export async function updateDocument(id: string, data: DocumentWriteData & { con
 	if (!hierarchy.valid) throw new Error(hierarchy.message);
 
 	const slug = data.slug?.trim() || slugify(data.title);
+	const contentType = data.contentType ?? 'markdown';
+	const mediaUrl = isMediaContentType(contentType) ? data.mediaUrl?.trim() || null : null;
 	const [existing] = await db
 		.select({ sortOrder: document.sortOrder })
 		.from(document)
@@ -606,6 +670,8 @@ export async function updateDocument(id: string, data: DocumentWriteData & { con
 			title: data.title,
 			slug,
 			content: data.content,
+			contentType,
+			mediaUrl,
 			excerpt: data.excerpt || null,
 			published: data.published,
 			categoryId: data.categoryId,

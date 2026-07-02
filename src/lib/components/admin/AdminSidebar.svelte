@@ -1,20 +1,30 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
 	import {
 		ExternalLink,
 		FileText,
 		FolderTree,
 		LayoutDashboard,
-		Settings
+		LogOut,
+		Settings,
+		Users
 	} from '@lucide/svelte';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
+	import { authClient } from '$lib/auth-client';
 
-	let { user }: { user: { name: string; image?: string | null } } = $props();
+	let {
+		user,
+		onnavigate
+	}: { user: { name: string; image?: string | null }; onnavigate?: () => void } = $props();
+
+	let signingOut = $state(false);
 
 	const links = [
 		{ href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
 		{ href: '/admin/documents', label: 'Documents', icon: FileText },
 		{ href: '/admin/categories', label: 'Categories', icon: FolderTree },
+		{ href: '/admin/users', label: 'Users', icon: Users },
 		{ href: '/admin/settings', label: 'Settings', icon: Settings }
 	] as const;
 
@@ -23,16 +33,28 @@
 		if (href === '/admin') return path === '/admin';
 		return path.startsWith(href);
 	}
+
+	async function signOut() {
+		if (signingOut) return;
+		signingOut = true;
+		onnavigate?.();
+		await authClient.signOut();
+		await goto(resolve('/'));
+	}
 </script>
 
-<aside class="flex h-screen w-64 shrink-0 flex-col border-r border-base-300 bg-base-200">
+<aside
+	class="flex h-full min-h-screen w-72 max-w-[85vw] flex-col border-r border-base-300 bg-base-200 lg:w-64"
+>
 	<div class="flex items-center gap-3 border-b border-base-300 p-4">
 		<div class="avatar">
 			<div class="w-10 rounded-full">
 				{#if user.image}
 					<img src={user.image} alt="" />
 				{:else}
-					<div class="flex h-full w-full items-center justify-center bg-primary text-primary-content">
+					<div
+						class="flex h-full w-full items-center justify-center bg-primary text-primary-content"
+					>
 						{user.name.charAt(0).toUpperCase()}
 					</div>
 				{/if}
@@ -53,6 +75,7 @@
 				class:bg-primary={isActive(link.href)}
 				class:text-primary-content={isActive(link.href)}
 				class:hover:bg-base-300={!isActive(link.href)}
+				onclick={() => onnavigate?.()}
 			>
 				<Icon class="h-5 w-5 shrink-0" aria-hidden="true" />
 				{link.label}
@@ -60,10 +83,29 @@
 		{/each}
 	</nav>
 
-	<div class="border-t border-base-300 p-3">
-		<a href={resolve('/')} class="btn btn-ghost btn-sm w-full justify-start gap-2" target="_blank">
+	<div class="space-y-1 border-t border-base-300 p-3">
+		<a
+			href={resolve('/')}
+			class="btn btn-ghost btn-sm w-full justify-start gap-2"
+			target="_blank"
+			onclick={() => onnavigate?.()}
+		>
 			<ExternalLink class="h-4 w-4" aria-hidden="true" />
 			View site
 		</a>
+		<button
+			type="button"
+			class="btn btn-ghost btn-sm w-full justify-start gap-2"
+			disabled={signingOut}
+			aria-busy={signingOut}
+			onclick={() => void signOut()}
+		>
+			{#if signingOut}
+				<span class="loading loading-spinner loading-sm" aria-hidden="true"></span>
+			{:else}
+				<LogOut class="h-4 w-4" aria-hidden="true" />
+			{/if}
+			Sign out
+		</button>
 	</div>
 </aside>

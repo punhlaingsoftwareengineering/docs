@@ -138,6 +138,7 @@
 				<div class="overflow-hidden rounded-box border border-base-300">
 					{#each group.items as item (item.id)}
 						<div
+							role="listitem"
 							class={[
 								'flex items-center gap-2 border-b border-base-300 px-3 py-2 last:border-b-0',
 								dropTargetId === item.id && canDropOn(item.id) && 'bg-primary/10',

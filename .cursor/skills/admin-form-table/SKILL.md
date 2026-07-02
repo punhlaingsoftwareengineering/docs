@@ -22,19 +22,19 @@ Always wrap field rows in `AdminFormTable`:
 import AdminFormTable from '$lib/components/admin/AdminFormTable.svelte';
 
 <form class="flex w-full min-w-0 flex-col space-y-8">
-  <section class="w-full min-w-0 space-y-4">
-    <h2 class="text-lg font-semibold">Section title</h2>
-    <AdminFormTable>
-      <!-- <tr> rows here -->
-    </AdminFormTable>
-  </section>
+	<section class="w-full min-w-0 space-y-4">
+		<h2 class="text-lg font-semibold">Section title</h2>
+		<AdminFormTable>
+			<!-- <tr> rows here -->
+		</AdminFormTable>
+	</section>
 </form>
 ```
 
 ## Column rules
 
-| Col 1 | Col 2 | Col 3 | Col 4 |
-|-------|-------|-------|-------|
+| Col 1   | Col 2   | Col 3   | Col 4   |
+| ------- | ------- | ------- | ------- |
 | Label A | Field A | Label B | Field B |
 
 - **Never** put one field across cols 2–3 with `colspan="2"` — that breaks vertical alignment.
@@ -48,18 +48,18 @@ import AdminFormTable from '$lib/components/admin/AdminFormTable.svelte';
 
 ```svelte
 <tr>
-  <td class="align-middle p-0">
-    <label class="label py-0" for="title"><span class="label-text">Title</span></label>
-  </td>
-  <td class="min-w-0 p-0">
-    <input id="title" name="title" class="input input-bordered w-full" />
-  </td>
-  <td class="align-middle p-0">
-    <label class="label py-0" for="slug"><span class="label-text">Slug</span></label>
-  </td>
-  <td class="min-w-0 p-0">
-    <input id="slug" name="slug" class="input input-bordered w-full" />
-  </td>
+	<td class="align-middle p-0">
+		<label class="label py-0" for="title"><span class="label-text">Title</span></label>
+	</td>
+	<td class="min-w-0 p-0">
+		<input id="title" name="title" class="input input-bordered w-full" />
+	</td>
+	<td class="align-middle p-0">
+		<label class="label py-0" for="slug"><span class="label-text">Slug</span></label>
+	</td>
+	<td class="min-w-0 p-0">
+		<input id="slug" name="slug" class="input input-bordered w-full" />
+	</td>
 </tr>
 ```
 
@@ -67,16 +67,16 @@ import AdminFormTable from '$lib/components/admin/AdminFormTable.svelte';
 
 ```svelte
 <tr>
-  <td class="align-middle p-0">
-    <label class="label py-0" for="sortOrder"><span class="label-text">Sort order</span></label>
-  </td>
-  <td class="min-w-0 p-0">
-    <input id="sortOrder" name="sortOrder" type="number" class="input input-bordered w-full" />
-  </td>
-  <td class="p-0" aria-hidden="true"></td>
-  <td class="min-w-0 p-0">
-    <button type="submit" class="btn btn-primary">Add category</button>
-  </td>
+	<td class="align-middle p-0">
+		<label class="label py-0" for="sortOrder"><span class="label-text">Sort order</span></label>
+	</td>
+	<td class="min-w-0 p-0">
+		<input id="sortOrder" name="sortOrder" type="number" class="input input-bordered w-full" />
+	</td>
+	<td class="p-0" aria-hidden="true"></td>
+	<td class="min-w-0 p-0">
+		<button type="submit" class="btn btn-primary">Add category</button>
+	</td>
 </tr>
 ```
 
@@ -84,12 +84,13 @@ import AdminFormTable from '$lib/components/admin/AdminFormTable.svelte';
 
 ```svelte
 <tr>
-  <td class="align-top p-0 pt-3">
-    <label class="label py-0" for="excerpt"><span class="label-text">Excerpt</span></label>
-  </td>
-  <td class="min-w-0 p-0" colspan="3">
-    <textarea id="excerpt" name="excerpt" class="textarea textarea-bordered w-full" rows="2"></textarea>
-  </td>
+	<td class="align-top p-0 pt-3">
+		<label class="label py-0" for="excerpt"><span class="label-text">Excerpt</span></label>
+	</td>
+	<td class="min-w-0 p-0" colspan="3">
+		<textarea id="excerpt" name="excerpt" class="textarea textarea-bordered w-full" rows="2"
+		></textarea>
+	</td>
 </tr>
 ```
 
@@ -104,9 +105,10 @@ import AdminFormTable from '$lib/components/admin/AdminFormTable.svelte';
 ```svelte
 <!-- BAD: 3 fields in one row -->
 <tr>
-  <td>Category</td><td>...</td>
-  <td>Parent</td><td>...</td>
-  <td>Sort</td><td>...</td>  <!-- breaks column grid -->
+	<td>Category</td><td>...</td>
+	<td>Parent</td><td>...</td>
+	<td>Sort</td><td>...</td>
+	<!-- breaks column grid -->
 </tr>
 
 <!-- BAD: field spans two data columns -->

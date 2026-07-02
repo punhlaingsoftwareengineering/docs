@@ -1,5 +1,5 @@
 import { marked, type Tokens } from 'marked';
-import DOMPurify from 'isomorphic-dompurify';
+import sanitizeHtml from 'sanitize-html';
 import { slugify } from '$lib/utils/slug';
 
 marked.setOptions({ gfm: true, breaks: true });
@@ -15,16 +15,31 @@ marked.use({
 	}
 });
 
+const sanitizeOptions: sanitizeHtml.IOptions = {
+	allowedTags: sanitizeHtml.defaults.allowedTags.concat([
+		'img',
+		'h1',
+		'h2',
+		'h3',
+		'h4',
+		'h5',
+		'h6'
+	]),
+	allowedAttributes: {
+		...sanitizeHtml.defaults.allowedAttributes,
+		a: ['href', 'name', 'target', 'rel'],
+		img: ['src', 'alt', 'title'],
+		'*': ['id']
+	}
+};
+
 export type DocHeading = {
 	id: string;
 	text: string;
 	level: number;
 };
 
-export function extractHeadings(
-	markdown: string,
-	options?: { maxLevel?: number }
-): DocHeading[] {
+export function extractHeadings(markdown: string, options?: { maxLevel?: number }): DocHeading[] {
 	const maxLevel = options?.maxLevel ?? 6;
 	const tokens = marked.lexer(markdown);
 	return tokens
@@ -38,5 +53,9 @@ export function extractHeadings(
 
 export function renderMarkdown(markdown: string): string {
 	const raw = marked.parse(markdown, { async: false }) as string;
-	return DOMPurify.sanitize(raw);
+	return sanitizeHtml(raw, sanitizeOptions);
+}
+
+export function sanitizeDocHtml(html: string): string {
+	return sanitizeHtml(html, sanitizeOptions);
 }

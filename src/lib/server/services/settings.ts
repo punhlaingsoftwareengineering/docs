@@ -6,11 +6,19 @@ import type { SettingsFormInput } from '$lib/schemas/settings';
 const DEFAULT_ID = 'default';
 
 export async function getSiteSettings() {
-	const [row] = await db.select().from(siteSettings).where(eq(siteSettings.id, DEFAULT_ID)).limit(1);
+	const [row] = await db
+		.select()
+		.from(siteSettings)
+		.where(eq(siteSettings.id, DEFAULT_ID))
+		.limit(1);
 	if (row) return row;
 
 	await db.insert(siteSettings).values({ id: DEFAULT_ID }).onConflictDoNothing();
-	const [created] = await db.select().from(siteSettings).where(eq(siteSettings.id, DEFAULT_ID)).limit(1);
+	const [created] = await db
+		.select()
+		.from(siteSettings)
+		.where(eq(siteSettings.id, DEFAULT_ID))
+		.limit(1);
 	return created!;
 }
 
@@ -23,6 +31,8 @@ export async function updateSiteSettings(data: SettingsFormInput) {
 			copyrightNotice: data.copyrightNotice,
 			footerSocialEnabled: data.footerSocialEnabled,
 			footerSocialLinks: data.footerSocialLinks,
+			navLinksEnabled: data.navLinksEnabled,
+			navLinks: data.navLinks,
 			metaDescription: data.metaDescription,
 			heroTitle: data.heroTitle,
 			heroSubtitle: data.heroSubtitle,
@@ -35,11 +45,9 @@ export async function updateSiteSettings(data: SettingsFormInput) {
 			techStackItems: data.techStackItems,
 			featuresHeading: data.featuresHeading,
 			featuresSubtitle: data.featuresSubtitle,
-			featuresItems: data.featuresItems,
 			codePreviewHeading: data.codePreviewHeading,
 			codePreviewSubtitle: data.codePreviewSubtitle,
-			codePreviewTerminalLabel: data.codePreviewTerminalLabel,
-			codePreviewLines: data.codePreviewLines,
+			welcomeVideoUrl: data.welcomeVideoUrl,
 			docsCategoriesHeading: data.docsCategoriesHeading,
 			docsCategoriesSubtitle: data.docsCategoriesSubtitle,
 			docsCategoriesCtaLabel: data.docsCategoriesCtaLabel,

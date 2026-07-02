@@ -74,13 +74,10 @@
 
 <AdminHeader
 	title="Categories"
-	breadcrumbs={[
-		{ label: 'Admin', href: resolve('/admin') },
-		{ label: 'Categories' }
-	]}
+	breadcrumbs={[{ label: 'Admin', href: resolve('/admin') }, { label: 'Categories' }]}
 />
 
-<div class="flex min-w-0 flex-1 flex-col space-y-8 p-6">
+<div class="flex min-w-0 flex-1 flex-col space-y-8 p-4 sm:p-6">
 	<FormAlert {form} />
 
 	<section class="w-full min-w-0 space-y-4">
@@ -115,7 +112,9 @@
 				</tr>
 				<tr>
 					<td class="align-middle p-0">
-						<label class="label py-0" for="create-sort"><span class="label-text">Sort order</span></label>
+						<label class="label py-0" for="create-sort"
+							><span class="label-text">Sort order</span></label
+						>
 					</td>
 					<td class="min-w-0 p-0">
 						<input
@@ -140,7 +139,9 @@
 		<h2 class="text-lg font-semibold">All categories</h2>
 
 		{#if data.categories.length === 0}
-			<div class="rounded-box border border-dashed border-base-300 p-8 text-center text-base-content/60">
+			<div
+				class="rounded-box border border-dashed border-base-300 p-8 text-center text-base-content/60"
+			>
 				No categories yet. Add one above before creating documents.
 			</div>
 		{:else}
@@ -217,7 +218,11 @@
 													<td class="min-w-0 p-0">
 														<div class="flex gap-2">
 															<button type="submit" class="btn btn-primary btn-sm">Save</button>
-															<button type="button" class="btn btn-ghost btn-sm" onclick={cancelEdit}>
+															<button
+																type="button"
+																class="btn btn-ghost btn-sm"
+																onclick={cancelEdit}
+															>
 																Cancel
 															</button>
 														</div>

@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { neon } from '@neondatabase/serverless';
 
 const sql = neon(process.env.DATABASE_URL!);
@@ -28,9 +29,9 @@ const statements = [
 		CONSTRAINT "tag_slug_unique" UNIQUE("slug")
 	)`,
 	`CREATE TABLE IF NOT EXISTS "document_tag" (
+		"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 		"document_id" uuid NOT NULL,
-		"tag_id" uuid NOT NULL,
-		CONSTRAINT "document_tag_document_id_tag_id_pk" PRIMARY KEY("document_id","tag_id")
+		"tag_id" uuid NOT NULL
 	)`,
 	`CREATE TABLE IF NOT EXISTS "site_settings" (
 		"id" text PRIMARY KEY DEFAULT 'default' NOT NULL,
@@ -62,6 +63,23 @@ const statements = [
 			FOREIGN KEY ("tag_id") REFERENCES "public"."tag"("id") ON DELETE cascade ON UPDATE no action;
 	EXCEPTION WHEN duplicate_object THEN NULL;
 	END $$`,
+	`ALTER TABLE "document_tag" ADD COLUMN IF NOT EXISTS "id" uuid DEFAULT gen_random_uuid()`,
+	`UPDATE "document_tag" SET "id" = gen_random_uuid() WHERE "id" IS NULL`,
+	`ALTER TABLE "document_tag" DROP CONSTRAINT IF EXISTS "document_tag_document_id_tag_id_pk"`,
+	`DO $$ BEGIN
+		ALTER TABLE "document_tag" ALTER COLUMN "id" SET NOT NULL;
+	EXCEPTION WHEN others THEN NULL;
+	END $$`,
+	`DO $$ BEGIN
+		IF NOT EXISTS (
+			SELECT 1 FROM pg_constraint
+			WHERE conrelid = 'document_tag'::regclass AND contype = 'p'
+		) THEN
+			ALTER TABLE "document_tag" ADD PRIMARY KEY ("id");
+		END IF;
+	EXCEPTION WHEN duplicate_object THEN NULL;
+	END $$`,
+	`CREATE UNIQUE INDEX IF NOT EXISTS "document_tag_document_id_tag_id_idx" ON "document_tag" ("document_id", "tag_id")`,
 	`CREATE UNIQUE INDEX IF NOT EXISTS "document_slug_idx" ON "document" USING btree ("slug")`,
 	`ALTER TABLE "document" ADD COLUMN IF NOT EXISTS "parent_document_id" uuid`,
 	`ALTER TABLE "document" ADD COLUMN IF NOT EXISTS "sort_order" integer DEFAULT 0 NOT NULL`,
@@ -83,6 +101,7 @@ const statements = [
 	`ALTER TABLE "site_settings" ADD COLUMN IF NOT EXISTS "code_preview_subtitle" text`,
 	`ALTER TABLE "site_settings" ADD COLUMN IF NOT EXISTS "code_preview_terminal_label" text`,
 	`ALTER TABLE "site_settings" ADD COLUMN IF NOT EXISTS "code_preview_lines" jsonb`,
+	`ALTER TABLE "site_settings" ADD COLUMN IF NOT EXISTS "welcome_video_url" text`,
 	`ALTER TABLE "site_settings" ADD COLUMN IF NOT EXISTS "docs_categories_heading" text`,
 	`ALTER TABLE "site_settings" ADD COLUMN IF NOT EXISTS "docs_categories_subtitle" text`,
 	`ALTER TABLE "site_settings" ADD COLUMN IF NOT EXISTS "docs_categories_cta_label" text`,
@@ -95,7 +114,28 @@ const statements = [
 	`ALTER TABLE "site_settings" ADD COLUMN IF NOT EXISTS "landing_cta_secondary_label" text`,
 	`ALTER TABLE "site_settings" ADD COLUMN IF NOT EXISTS "landing_cta_secondary_url" text`,
 	`ALTER TABLE "site_settings" ADD COLUMN IF NOT EXISTS "footer_social_enabled" boolean DEFAULT false NOT NULL`,
-	`ALTER TABLE "site_settings" ADD COLUMN IF NOT EXISTS "footer_social_links" jsonb`
+	`ALTER TABLE "site_settings" ADD COLUMN IF NOT EXISTS "footer_social_links" jsonb`,
+	`ALTER TABLE "site_settings" ADD COLUMN IF NOT EXISTS "nav_links_enabled" boolean DEFAULT false NOT NULL`,
+	`ALTER TABLE "site_settings" ADD COLUMN IF NOT EXISTS "nav_links" jsonb`,
+	`CREATE TABLE IF NOT EXISTS "admin_invitation" (
+		"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+		"email" text NOT NULL,
+		"token" text NOT NULL,
+		"invited_by_user_id" text NOT NULL REFERENCES "user"("id") ON DELETE cascade,
+		"expires_at" timestamp NOT NULL,
+		"accepted_at" timestamp,
+		"revoked_at" timestamp,
+		"created_at" timestamp DEFAULT now() NOT NULL
+	)`,
+	`CREATE UNIQUE INDEX IF NOT EXISTS "admin_invitation_token_idx" ON "admin_invitation" ("token")`,
+	`ALTER TABLE "user" ADD COLUMN IF NOT EXISTS "role" text`,
+	`ALTER TABLE "user" ADD COLUMN IF NOT EXISTS "banned" boolean DEFAULT false`,
+	`ALTER TABLE "user" ADD COLUMN IF NOT EXISTS "ban_reason" text`,
+	`ALTER TABLE "user" ADD COLUMN IF NOT EXISTS "ban_expires" timestamp`,
+	`UPDATE "user" SET role = 'admin' WHERE role IS NULL`,
+	`ALTER TABLE "document" ADD COLUMN IF NOT EXISTS "content_type" text DEFAULT 'markdown' NOT NULL`,
+	`ALTER TABLE "document" ADD COLUMN IF NOT EXISTS "media_url" text`,
+	`UPDATE "document" SET content_type = 'markdown' WHERE content_type IS NULL`
 ];
 
 for (const statement of statements) {

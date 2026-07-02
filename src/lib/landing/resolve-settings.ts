@@ -1,8 +1,4 @@
 import {
-	DEFAULT_CODE_PREVIEW_HEADING,
-	DEFAULT_CODE_PREVIEW_LINES,
-	DEFAULT_CODE_PREVIEW_SUBTITLE,
-	DEFAULT_CODE_PREVIEW_TERMINAL_LABEL,
 	DEFAULT_DOCS_CATEGORIES_CTA_LABEL,
 	DEFAULT_DOCS_CATEGORIES_CTA_URL,
 	DEFAULT_DOCS_CATEGORIES_HEADING,
@@ -19,7 +15,10 @@ import {
 	DEFAULT_LANDING_CTA_SECONDARY_URL,
 	DEFAULT_LANDING_CTA_SUBTITLE,
 	DEFAULT_TECH_STACK_HEADING,
-	DEFAULT_TECH_STACK_ITEMS
+	DEFAULT_TECH_STACK_ITEMS,
+	DEFAULT_WELCOME_VIDEO_HEADING,
+	DEFAULT_WELCOME_VIDEO_SUBTITLE,
+	DEFAULT_WELCOME_VIDEO_URL
 } from '$lib/landing/defaults';
 import type { siteSettings } from '$lib/server/db/schema';
 import type { LandingFeature, ResolvedLandingSettings } from '$lib/types/landing';
@@ -46,12 +45,9 @@ export function resolveLandingSettings(settings: SiteSettingsRow): ResolvedLandi
 			items: resolveFeatures(settings.featuresItems ?? undefined)
 		},
 		codePreview: {
-			heading: settings.codePreviewHeading ?? DEFAULT_CODE_PREVIEW_HEADING,
-			subtitle: settings.codePreviewSubtitle ?? DEFAULT_CODE_PREVIEW_SUBTITLE,
-			terminalLabel: settings.codePreviewTerminalLabel ?? DEFAULT_CODE_PREVIEW_TERMINAL_LABEL,
-			lines: settings.codePreviewLines?.length
-				? settings.codePreviewLines
-				: [...DEFAULT_CODE_PREVIEW_LINES]
+			heading: settings.codePreviewHeading ?? DEFAULT_WELCOME_VIDEO_HEADING,
+			subtitle: settings.codePreviewSubtitle ?? DEFAULT_WELCOME_VIDEO_SUBTITLE,
+			videoUrl: settings.welcomeVideoUrl?.trim() || DEFAULT_WELCOME_VIDEO_URL
 		},
 		docsCategories: {
 			heading: settings.docsCategoriesHeading ?? DEFAULT_DOCS_CATEGORIES_HEADING,
@@ -74,14 +70,6 @@ export function resolveLandingSettings(settings: SiteSettingsRow): ResolvedLandi
 	};
 }
 
-export function parseCodePreviewLines(raw: string): string[] {
-	return raw.split('\n');
-}
-
-export function formatCodePreviewLines(lines: string[]): string {
-	return lines.join('\n');
-}
-
 export function parseTechStackItems(raw: string): string[] {
 	return raw
 		.split('\n')
@@ -102,11 +90,9 @@ export function landingSettingsFormValues(settings: SiteSettingsRow) {
 		techStackItems: formatTechStackItems(landing.techStack.items),
 		featuresHeading: landing.features.heading,
 		featuresSubtitle: landing.features.subtitle,
-		featuresItems: JSON.stringify(landing.features.items, null, 2),
 		codePreviewHeading: landing.codePreview.heading,
 		codePreviewSubtitle: landing.codePreview.subtitle,
-		codePreviewTerminalLabel: landing.codePreview.terminalLabel,
-		codePreviewLines: formatCodePreviewLines(landing.codePreview.lines),
+		welcomeVideoUrl: landing.codePreview.videoUrl,
 		docsCategoriesHeading: landing.docsCategories.heading,
 		docsCategoriesSubtitle: landing.docsCategories.subtitle,
 		docsCategoriesCtaLabel: landing.docsCategories.ctaLabel,

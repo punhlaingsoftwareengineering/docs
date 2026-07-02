@@ -63,7 +63,9 @@
 
 {#if headings.length > 0}
 	<nav aria-label="On this page" class="sticky top-24">
-		<p class="mb-2 text-xs font-semibold tracking-wide text-base-content/50 uppercase">On this page</p>
+		<p class="mb-2 text-xs font-semibold tracking-wide text-base-content/50 uppercase">
+			On this page
+		</p>
 		<ul class="space-y-0.5 border-l border-base-300">
 			{#each headings as heading, i (`${heading.id}-${i}`)}
 				<li>

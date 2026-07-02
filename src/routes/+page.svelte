@@ -1,11 +1,9 @@
 <script lang="ts">
 	import SiteNavbar from '$lib/components/layout/SiteNavbar.svelte';
-	import SiteFooter from '$lib/components/layout/SiteFooter.svelte';
 	import Hero from '$lib/components/landing/Hero.svelte';
 	import TechStack from '$lib/components/landing/TechStack.svelte';
 	import FeatureGrid from '$lib/components/landing/FeatureGrid.svelte';
-	import CodePreview from '$lib/components/landing/CodePreview.svelte';
-	import DocsCategories from '$lib/components/landing/DocsCategories.svelte';
+	import WelcomeVideo from '$lib/components/landing/WelcomeVideo.svelte';
 	import LandingCta from '$lib/components/landing/LandingCta.svelte';
 	import PageTitle from '$lib/components/PageTitle.svelte';
 
@@ -13,7 +11,7 @@
 	const s = $derived(data.settings);
 	const landing = $derived(data.landing);
 	const auth = $derived(data.auth);
-	const showAdminAuth = $derived(!auth.hasAdmin || auth.isSignedIn);
+	const showAdminAuth = $derived(!auth.isAdmin);
 </script>
 
 <PageTitle title={s.tagline} appName={data.site.appName} />
@@ -27,6 +25,9 @@
 	siteIconHref={data.site.siteIconHref}
 	hasAdmin={auth.hasAdmin}
 	isSignedIn={auth.isSignedIn}
+	isAdmin={auth.isAdmin}
+	navLinksEnabled={data.site.navLinksEnabled}
+	navLinks={data.site.navLinks}
 />
 
 <main class="flex-1">
@@ -36,8 +37,8 @@
 		heroSubtitle={s.heroSubtitle}
 		heroPrimaryCta={s.heroPrimaryCta}
 		heroPrimaryUrl={s.heroPrimaryUrl}
-		heroSecondaryCta={auth.isSignedIn ? 'Admin' : s.heroSecondaryCta}
-		heroSecondaryUrl={auth.isSignedIn ? '/admin' : s.heroSecondaryUrl}
+		heroSecondaryCta={auth.isAdmin ? 'Admin' : auth.hasAdmin ? 'Sign in' : 'Set up admin'}
+		heroSecondaryUrl={auth.isAdmin ? '/admin' : auth.hasAdmin ? '/login' : '/admin/login'}
 		searchPlaceholder={landing.heroSearchPlaceholder}
 		showSecondaryCta={showAdminAuth}
 	/>
@@ -45,41 +46,22 @@
 	<FeatureGrid
 		heading={landing.features.heading}
 		subtitle={landing.features.subtitle}
-		items={landing.features.items}
-	/>
-	<CodePreview
-		heading={landing.codePreview.heading}
-		subtitle={landing.codePreview.subtitle}
-		terminalLabel={landing.codePreview.terminalLabel}
-		lines={landing.codePreview.lines}
-	/>
-	<DocsCategories
-		heading={landing.docsCategories.heading}
-		subtitle={landing.docsCategories.subtitle}
 		ctaLabel={landing.docsCategories.ctaLabel}
 		ctaUrl={landing.docsCategories.ctaUrl}
-		descriptions={landing.docsCategories.descriptions}
-		categories={data.landingCategories}
+		sections={data.categorySections}
+	/>
+	<WelcomeVideo
+		heading={landing.codePreview.heading}
+		subtitle={landing.codePreview.subtitle}
+		videoUrl={landing.codePreview.videoUrl}
 	/>
 	<LandingCta
 		heading={landing.cta.heading}
 		subtitle={landing.cta.subtitle}
 		primaryLabel={landing.cta.primaryLabel}
 		primaryUrl={landing.cta.primaryUrl}
-		secondaryLabel={auth.isSignedIn ? 'Admin area' : landing.cta.secondaryLabel}
-		secondaryUrl={auth.isSignedIn ? '/admin' : landing.cta.secondaryUrl}
+		secondaryLabel={auth.isAdmin ? 'Admin area' : landing.cta.secondaryLabel}
+		secondaryUrl={auth.isAdmin ? '/admin' : landing.cta.secondaryUrl}
 		showSecondaryCta={showAdminAuth}
 	/>
 </main>
-
-<SiteFooter
-	siteTitle={s.siteTitle}
-	siteIconHref={data.site.siteIconHref}
-	appName={data.site.appName}
-	copyrightNotice={s.copyrightNotice ?? 'zarnihlawn.com'}
-	tagline={s.tagline}
-	categories={data.footerCategories}
-	socialEnabled={s.footerSocialEnabled ?? false}
-	socialLinks={s.footerSocialLinks ?? []}
-	showAdminLink={auth.isSignedIn}
-/>

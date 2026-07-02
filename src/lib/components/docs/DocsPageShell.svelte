@@ -8,11 +8,13 @@
 	let {
 		sidebarGroups,
 		currentSlug,
+		currentCategorySlug,
 		children,
 		toc
 	}: {
 		sidebarGroups: SidebarGroup[];
 		currentSlug?: string;
+		currentCategorySlug?: string;
 		children: Snippet;
 		toc?: Snippet;
 	} = $props();
@@ -25,6 +27,7 @@
 		<DocsChapterSidebar
 			groups={sidebarGroups}
 			{currentSlug}
+			{currentCategorySlug}
 			onnavigate={() => (drawerOpen = false)}
 		/>
 	</div>
@@ -32,7 +35,9 @@
 
 <div class="flex min-h-screen w-full">
 	<!-- Desktop sidebar: flush left edge, full height -->
-	<aside class="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-base-300 bg-base-100 lg:flex xl:w-72">
+	<aside
+		class="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-base-300 bg-base-100 lg:flex xl:w-72"
+	>
 		<DocsSidebarToolbar />
 		{@render sidebarNav()}
 	</aside>
@@ -54,7 +59,8 @@
 			<input id="docs-drawer" type="checkbox" class="drawer-toggle" bind:checked={drawerOpen} />
 
 			<div class="drawer-side z-40 lg:hidden">
-				<label for="docs-drawer" aria-label="Close documentation menu" class="drawer-overlay"></label>
+				<label for="docs-drawer" aria-label="Close documentation menu" class="drawer-overlay"
+				></label>
 				<aside class="flex h-full w-72 flex-col bg-base-100">
 					{@render sidebarNav()}
 				</aside>
@@ -62,7 +68,9 @@
 
 			<div class="drawer-content flex min-w-0 flex-1 flex-col lg:min-h-screen">
 				<div class="flex min-w-0 flex-1 justify-center">
-					<div class="flex w-full max-w-[1600px] gap-10 pl-6 pr-6 sm:pl-10 sm:pr-8 xl:gap-14 xl:pl-14 xl:pr-12">
+					<div
+						class="flex w-full max-w-[1600px] gap-10 pl-6 pr-6 sm:pl-10 sm:pr-8 xl:gap-14 xl:pl-14 xl:pr-12"
+					>
 						<article class="min-w-0 flex-1 pb-8 pt-4 lg:pt-6">
 							{@render children()}
 						</article>

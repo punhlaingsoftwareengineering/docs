@@ -31,7 +31,9 @@
 			activeIndex = 0;
 			dialog.showModal();
 			fetchResults('');
-			queueMicrotask(() => dialog?.querySelector<HTMLInputElement>('input[type="search"]')?.focus());
+			queueMicrotask(() =>
+				dialog?.querySelector<HTMLInputElement>('input[type="search"]')?.focus()
+			);
 		} else if (dialog.open) {
 			dialog.close();
 		}
@@ -127,7 +129,9 @@
 								onclick={() => navigateTo(result)}
 								onmouseenter={() => (activeIndex = i)}
 							>
-								<span class="w-full font-medium">{@html highlightSearchText(result.title, query)}</span>
+								<span class="w-full font-medium"
+									>{@html highlightSearchText(result.title, query)}</span
+								>
 								<span class="text-xs text-base-content/50">{result.categoryName}</span>
 								{#if result.excerpt}
 									<span class="line-clamp-2 w-full text-xs text-base-content/60">
@@ -141,7 +145,9 @@
 			{/if}
 		</div>
 
-		<div class="flex items-center justify-between border-t border-base-300 px-4 py-2 text-xs text-base-content/50">
+		<div
+			class="flex items-center justify-between border-t border-base-300 px-4 py-2 text-xs text-base-content/50"
+		>
 			<span class="inline-flex items-center gap-1">
 				<ArrowUp class="h-3 w-3" aria-hidden="true" />
 				<ArrowDown class="h-3 w-3" aria-hidden="true" />

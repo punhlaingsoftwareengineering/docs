@@ -1,10 +1,11 @@
-import { json, error } from '@sveltejs/kit';
+import { json } from '@sveltejs/kit';
 import { reorderDocumentsSchema } from '$lib/schemas/document';
+import { assertAdminApi } from '$lib/server/auth-guards';
 import { reorderSiblingDocuments } from '$lib/server/services/docs';
 import type { RequestHandler } from './$types';
 
 export const POST: RequestHandler = async ({ request, locals }) => {
-	if (!locals.user) error(401, 'Unauthorized');
+	assertAdminApi(locals);
 
 	const body = await request.json();
 	const parsed = reorderDocumentsSchema.safeParse(body);

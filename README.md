@@ -1,42 +1,58 @@
-# sv
+# docs.zarnihlawn.com
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+Personal software documentation site built with SvelteKit 2, Drizzle, and Better Auth.
 
-## Creating a project
+## Prerequisites
 
-If you're seeing this, you've probably already done this step. Congrats!
+- [pnpm](https://pnpm.io/) 10+
+- Node.js 22+
+- PostgreSQL (Neon or self-hosted)
 
-```sh
-# create a new project
-npx sv create my-app
-```
-
-To recreate this project with the same configuration:
+## Setup
 
 ```sh
-# recreate this project
-pnpm dlx sv@0.16.1 create --template minimal --types ts --add prettier eslint vitest="usages:unit,component" playwright tailwindcss="plugins:typography,forms" sveltekit-adapter="adapter:node" better-auth="demo:password,github" drizzle="database:postgresql+postgresql:neon" mdsvex paraglide="languageTags:en, my, ja+demo:no" experimental="versions:kit+features:async,remoteFunctions,explicitEnvironmentVariables,handleRenderingErrors,forkPreloads" --install pnpm docs.zarnihlawn.com
+cp .env.example .env
+# Edit .env — set DATABASE_URL, ORIGIN, BETTER_AUTH_SECRET, GitHub OAuth vars
+
+pnpm install
+pnpm run db:ensure
 ```
 
-## Developing
-
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+## Development
 
 ```sh
-npm run dev
+pnpm dev
 
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
+# Open browser automatically
+pnpm dev -- --open
 ```
 
-## Building
+Dev, preview, and production all run on **port 1026** (`http://localhost:1026`).
 
-To create a production version of your app:
+## Build and preview
 
 ```sh
-npm run build
+pnpm build
+pnpm preview
 ```
 
-You can preview the production build with `npm run preview`.
+## Production (Docker)
 
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for full deployment guide.
+
+```sh
+docker build -t docs .
+docker run --rm -p 1026:1026 --env-file .env docs
+```
+
+## Common tasks
+
+| Task         | Command          |
+| ------------ | ---------------- |
+| Typecheck    | `pnpm check`     |
+| Lint         | `pnpm lint`      |
+| Format       | `pnpm format`    |
+| DB push      | `pnpm db:push`   |
+| Unit tests   | `pnpm test:unit` |
+| E2E tests    | `pnpm test:e2e`  |
+| Start (prod) | `pnpm start`     |

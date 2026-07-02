@@ -5,11 +5,21 @@
 	let {
 		groups,
 		currentSlug,
+		currentCategorySlug,
 		onnavigate
-	}: { groups: SidebarGroup[]; currentSlug?: string; onnavigate?: () => void } = $props();
+	}: {
+		groups: SidebarGroup[];
+		currentSlug?: string;
+		currentCategorySlug?: string;
+		onnavigate?: () => void;
+	} = $props();
 
 	function isActive(slug: string) {
 		return currentSlug === slug;
+	}
+
+	function isCategoryActive(slug: string) {
+		return currentCategorySlug === slug;
 	}
 </script>
 
@@ -46,7 +56,16 @@
 	<ul class="menu menu-sm w-full">
 		{#each groups as group (group.slug)}
 			{#if group.items.length > 0}
-				<li class="menu-title">{group.name}</li>
+				<li class="menu-title">
+					<a
+						href={resolve(`/docs/category/${group.slug}`)}
+						class:font-semibold={isCategoryActive(group.slug)}
+						class:text-primary={isCategoryActive(group.slug)}
+						onclick={() => onnavigate?.()}
+					>
+						{group.name}
+					</a>
+				</li>
 				{@render treeNodes(group.items)}
 			{/if}
 		{/each}

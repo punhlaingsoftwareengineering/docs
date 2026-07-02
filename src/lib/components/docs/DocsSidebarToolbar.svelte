@@ -17,11 +17,7 @@
 </script>
 
 <div class="flex h-14 shrink-0 items-center justify-between border-b border-base-300 px-4">
-	<a
-		href={resolve('/')}
-		class="btn btn-ghost btn-sm btn-square"
-		aria-label="Back to home"
-	>
+	<a href={resolve('/')} class="btn btn-ghost btn-sm btn-square" aria-label="Back to home">
 		<ArrowLeft class="h-5 w-5" aria-hidden="true" />
 	</a>
 

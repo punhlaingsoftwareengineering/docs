@@ -50,23 +50,23 @@ Until then, always end with exactly one next question.
 4. Append decision to .cursor/workflow-state.md
 5. Write or update ONE .cursor/rules/*.mdc rule for this decision
 6. Implement minimal code that follows the new rule
-7. Verify: npm run check / lint if TS or Svelte changed
+7. Verify: `pnpm check` / lint if TS or Svelte changed
 8. Output the per-turn summary template
 9. State the next question (preview only — full question next turn if user continues)
 ```
 
 ## Hard constraints
 
-| Rule | Detail |
-|------|--------|
-| One question per turn | Never batch structure decisions |
-| Rule before code | No implementation until `.mdc` exists for this decision |
-| Minimal diff | Only code required by the current answer |
-| Wait for user | Stop after summary; do not auto-advance |
-| No duplication | Extend existing rules; do not copy project-stack or framework rules |
-| Stack-aware | Skip questions already answered by rules or code |
-| Svelte | Run Svelte MCP `svelte-autofixer` after editing `.svelte` files |
-| Rule format | Follow create-rule skill — `.mdc`, YAML frontmatter, ~50 lines, one concern |
+| Rule                  | Detail                                                                      |
+| --------------------- | --------------------------------------------------------------------------- |
+| One question per turn | Never batch structure decisions                                             |
+| Rule before code      | No implementation until `.mdc` exists for this decision                     |
+| Minimal diff          | Only code required by the current answer                                    |
+| Wait for user         | Stop after summary; do not auto-advance                                     |
+| No duplication        | Extend existing rules; do not copy project-stack or framework rules         |
+| Stack-aware           | Skip questions already answered by rules or code                            |
+| Svelte                | Run Svelte MCP `svelte-autofixer` after editing `.svelte` files             |
+| Rule format           | Follow create-rule skill — `.mdc`, YAML frontmatter, ~50 lines, one concern |
 
 ## Per-turn summary template
 
@@ -113,28 +113,28 @@ Update after every answered question.
 
 ## Phase overview
 
-| Phase | Topic |
-|-------|-------|
-| 0 | Bootstrap — app purpose, resume vs restart |
-| 1 | Routes — URL map, layouts, public vs protected |
-| 2 | `$lib` — components, schemas, server layout |
-| 3 | Data — Drizzle tables, IDs, migrations |
-| 4 | Auth — Better Auth boundaries |
-| 5 | Validation — Zod schemas |
-| 6 | UI — daisyUI theme and shell |
-| 7 | Features — one feature per sub-loop |
-| 8 | Polish — tests, SEO, i18n |
+| Phase | Topic                                          |
+| ----- | ---------------------------------------------- |
+| 0     | Bootstrap — app purpose, resume vs restart     |
+| 1     | Routes — URL map, layouts, public vs protected |
+| 2     | `$lib` — components, schemas, server layout    |
+| 3     | Data — Drizzle tables, IDs, migrations         |
+| 4     | Auth — Better Auth boundaries                  |
+| 5     | Validation — Zod schemas                       |
+| 6     | UI — daisyUI theme and shell                   |
+| 7     | Features — one feature per sub-loop            |
+| 8     | Polish — tests, SEO, i18n                      |
 
 Full questions: [phases.md](phases.md). Pick the **next unanswered** question. User may skip a phase only by explicit request.
 
 ## Rule naming
 
-| Decision | File | Scope |
-|----------|------|-------|
-| Whole-app | `app-structure.mdc` | `alwaysApply: true` |
-| Routes | `routing.mdc` | `globs: src/routes/**` |
-| Data | `data-model.mdc` | `globs: src/lib/server/db/**` |
-| Feature | `feature-[name].mdc` | targeted globs |
+| Decision  | File                 | Scope                         |
+| --------- | -------------------- | ----------------------------- |
+| Whole-app | `app-structure.mdc`  | `alwaysApply: true`           |
+| Routes    | `routing.mdc`        | `globs: src/routes/**`        |
+| Data      | `data-model.mdc`     | `globs: src/lib/server/db/**` |
+| Feature   | `feature-[name].mdc` | targeted globs                |
 
 Templates: [rule-template.md](rule-template.md).
 

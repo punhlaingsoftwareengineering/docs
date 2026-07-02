@@ -17,12 +17,26 @@ import { sveltekitCookies } from 'better-auth/svelte-kit';
 import { getRequestEvent } from '$app/server';
 
 export const auth = betterAuth({
+	appName: PUBLIC_APP_NAME,
 	baseURL: ORIGIN,
 	secret: BETTER_AUTH_SECRET,
 	database: drizzleAdapter(db, { provider: 'pg' }),
-	plugins: [sveltekitCookies(getRequestEvent)] // must be last
+	plugins: [
+		twoFactor({ issuer: PUBLIC_APP_NAME }),
+		sveltekitCookies(getRequestEvent) // must be last
+	]
 });
 ```
+
+## Mandatory 2FA (admin only)
+
+- `twoFactor` plugin — TOTP + backup codes; `user.twoFactorEnabled` on session user
+- Client: `twoFactorClient` in `src/lib/auth-client.ts` with `onTwoFactorRedirect` → `/login/two-factor`
+- Enrollment: `/admin/security/2fa` — set password (GitHub-only), scan QR, verify, save backup codes
+- Sign-in challenge: `/login/two-factor` after email or GitHub login when 2FA is enabled
+- `admin/+layout.server.ts` redirects to enrollment until `twoFactorEnabled`
+- OAuth 2FA gate: `src/lib/server/two-factor-oauth.ts` `after` hook on `/callback/*` (Better Auth only gates email sign-in by default)
+- Block `/two-factor/disable` in `hooks.before` — 2FA cannot be turned off
 
 ## Hooks
 
@@ -37,14 +51,23 @@ if (session) {
 return svelteKitHandler({ event, resolve, auth, building });
 ```
 
-## Single admin (GitHub only)
+## Invite-only admin access
 
-- `emailAndPassword` disabled — GitHub OAuth only on `/login`
+- `admin` plugin — `user.role` (`admin` / `user`); `requireAdmin()` in `$lib/server/auth-guards.ts`
+- Bootstrap: empty `user` table → first signup gets `role: 'admin'`
+- After bootstrap: `databaseHooks.user.create.before` allows signup only with valid pending invitation (email match or `invite_token` cookie)
+- Invitations: `admin_invitation` table + `/admin/users` UI; email via Gmail SMTP (`SMTP_USER`, `SMTP_PASS`) or copy-link fallback
+- Accept invite: `/invite/[token]` — email signup or GitHub with `requestSignUp`
+- `session.create.before` rejects non-admin sessions
+- Check `hasAdmin()`, `isBootstrap()`, `isAdminUser()` from `$lib/server/users`
+
+## Single admin bootstrap (login UI)
+
+- GitHub OAuth is the primary sign-in method
+- `emailAndPassword` enabled for bootstrap and invite acceptance
 - `disableImplicitSignUp: true` on GitHub provider
-- **No admin yet:** login shows **Sign up with GitHub** (`requestSignUp: true`) — first user becomes admin
-- **Admin exists:** login shows **Sign in with GitHub** only — no signup for visitors
-- `databaseHooks.user.create.before` rejects any second user
-- Check `hasAdmin()` from `$lib/server/users` for UI and action guards
+- **Bootstrap (`isBootstrap()`):** `/admin/login` shows **Create admin with GitHub** or **Create admin with email** (one time only)
+- **After bootstrap:** `/admin/login` is admin sign-in only; `/login` is user sign-in only
 
 ## Forms and actions
 

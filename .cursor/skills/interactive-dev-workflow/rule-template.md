@@ -54,10 +54,10 @@ alwaysApply: false
 
 ## URL map
 
-| Path | Layout | Auth |
-|------|--------|------|
-| `/` | marketing | public |
-| `/docs/[slug]` | docs | public |
+| Path           | Layout    | Auth   |
+| -------------- | --------- | ------ |
+| `/`            | marketing | public |
+| `/docs/[slug]` | docs      | public |
 
 ## Groups
 
@@ -96,7 +96,7 @@ alwaysApply: false
 
 ## Migrations
 
-- Use `npm run db:generate` then `db:migrate` for schema changes
+- Use `pnpm run db:generate` then `db:migrate` for schema changes
 ```
 
 ---
@@ -133,13 +133,13 @@ MDX/markdown docs rendered at `/docs/[slug]`.
 
 ## Naming conventions
 
-| Pattern | Use when |
-|---------|----------|
-| `app-structure.mdc` | Purpose, audience, global folders |
-| `routing.mdc` | URL map, layouts, auth per route |
-| `data-model.mdc` | Drizzle tables and IDs |
-| `feature-[kebab-name].mdc` | One v1 feature |
-| `ui-shell.mdc` | daisyUI layout, themes, nav |
+| Pattern                    | Use when                          |
+| -------------------------- | --------------------------------- |
+| `app-structure.mdc`        | Purpose, audience, global folders |
+| `routing.mdc`              | URL map, layouts, auth per route  |
+| `data-model.mdc`           | Drizzle tables and IDs            |
+| `feature-[kebab-name].mdc` | One v1 feature                    |
+| `ui-shell.mdc`             | daisyUI layout, themes, nav       |
 
 ## Frontmatter rules
 

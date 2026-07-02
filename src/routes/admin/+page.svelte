@@ -8,7 +8,7 @@
 
 <AdminHeader title="Dashboard" />
 
-<div class="flex min-w-0 flex-1 flex-col space-y-6 p-6">
+<div class="flex min-w-0 flex-1 flex-col space-y-6 p-4 sm:p-6">
 	<div class="grid gap-4 sm:grid-cols-3">
 		<div class="stat rounded-box border border-base-300 bg-base-100">
 			<div class="stat-title">Total documents</div>
@@ -24,13 +24,15 @@
 		</div>
 	</div>
 
-	<div class="flex items-center justify-between">
+	<div class="flex flex-wrap items-center justify-between gap-2">
 		<h2 class="text-lg font-semibold">Categories</h2>
 		<a href={resolve('/admin/categories')} class="btn btn-ghost btn-sm">Manage categories</a>
 	</div>
 
 	{#if data.categories.length === 0}
-		<div class="rounded-box border border-dashed border-base-300 p-6 text-center text-base-content/60">
+		<div
+			class="rounded-box border border-dashed border-base-300 p-6 text-center text-base-content/60"
+		>
 			No categories yet.
 			<a href={resolve('/admin/categories')} class="link font-medium">Create your first category</a>
 			before adding documents.
@@ -58,7 +60,7 @@
 		</div>
 	{/if}
 
-	<div class="flex items-center justify-between">
+	<div class="flex flex-wrap items-center justify-between gap-2">
 		<div>
 			<h2 class="text-lg font-semibold">Document order</h2>
 			<p class="text-sm text-base-content/60">
@@ -69,7 +71,9 @@
 	</div>
 
 	{#if data.orderGroups.every((group) => group.items.length === 0)}
-		<div class="rounded-box border border-dashed border-base-300 p-8 text-center text-base-content/60">
+		<div
+			class="rounded-box border border-dashed border-base-300 p-8 text-center text-base-content/60"
+		>
 			No documents yet. Create your first one.
 		</div>
 	{:else}

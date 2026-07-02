@@ -3,8 +3,13 @@
 	import { resolve } from '$app/paths';
 	import AdminFormTable from '$lib/components/admin/AdminFormTable.svelte';
 	import AdminHeader from '$lib/components/admin/AdminHeader.svelte';
-	import MarkdownEditor from '$lib/components/admin/MarkdownEditor.svelte';
+	import DocumentContentSection from '$lib/components/admin/DocumentContentSection.svelte';
 	import FormAlert from '$lib/components/FormAlert.svelte';
+	import {
+		DEFAULT_DOCUMENT_CONTENT_TYPE,
+		DOCUMENT_CONTENT_TYPE_LABELS,
+		type DocumentContentType
+	} from '$lib/constants/document-content';
 	import { confirmEnhance, formEnhance } from '$lib/utils/form-enhance';
 	import type { PageData } from './$types';
 
@@ -18,6 +23,8 @@
 	let { data, form }: { data: PageData; form: FormState } = $props();
 
 	let content = $state('');
+	let contentType = $state<DocumentContentType>(DEFAULT_DOCUMENT_CONTENT_TYPE);
+	let mediaUrl = $state('');
 	let title = $state('');
 	let slug = $state('');
 	let excerpt = $state('');
@@ -34,6 +41,9 @@
 			slug = (values.slug as string) ?? slug;
 			excerpt = (values.excerpt as string) ?? excerpt;
 			tags = (values.tags as string) ?? tags;
+			content = (values.content as string) ?? content;
+			contentType = (values.contentType as DocumentContentType) ?? contentType;
+			mediaUrl = (values.mediaUrl as string) ?? mediaUrl;
 			categoryId = (values.categoryId as string) ?? categoryId;
 			parentDocumentId = (values.parentDocumentId as string) ?? parentDocumentId;
 			return;
@@ -41,6 +51,8 @@
 
 		if (!initialized) {
 			content = data.doc.content;
+			contentType = (data.doc.contentType as DocumentContentType) ?? DEFAULT_DOCUMENT_CONTENT_TYPE;
+			mediaUrl = data.doc.mediaUrl ?? '';
 			title = data.doc.title;
 			slug = data.doc.slug;
 			excerpt = data.doc.excerpt ?? '';
@@ -64,13 +76,15 @@
 	]}
 />
 
-<div class="flex min-w-0 flex-1 flex-col space-y-4 p-6">
+<div class="flex min-w-0 flex-1 flex-col space-y-4 p-4 sm:p-6">
 	<FormAlert {form} />
 
 	<div class="flex flex-wrap items-center gap-2">
 		{#if data.doc.published}
 			<span class="badge badge-success">Published</span>
-			<a href={resolve(`/docs/${data.doc.slug}`)} class="btn btn-ghost btn-xs" target="_blank">View public</a>
+			<a href={resolve(`/docs/${data.doc.slug}`)} class="btn btn-ghost btn-xs" target="_blank"
+				>View public</a
+			>
 		{:else}
 			<span class="badge badge-warning">Draft</span>
 		{/if}
@@ -78,9 +92,20 @@
 		{#if data.hasChildren}
 			<span class="badge badge-secondary">Has children</span>
 		{/if}
+		{#if data.doc.contentType && data.doc.contentType !== 'markdown'}
+			<span class="badge badge-outline">
+				{DOCUMENT_CONTENT_TYPE_LABELS[data.doc.contentType as DocumentContentType] ??
+					data.doc.contentType}
+			</span>
+		{/if}
 	</div>
 
-	<form method="POST" action="?/save" use:enhance={formEnhance} class="flex w-full min-w-0 flex-col space-y-8">
+	<form
+		method="POST"
+		action="?/save"
+		use:enhance={formEnhance}
+		class="flex w-full min-w-0 flex-col space-y-8"
+	>
 		<section class="w-full min-w-0 space-y-4">
 			<h2 class="text-lg font-semibold">Details</h2>
 			<AdminFormTable>
@@ -89,7 +114,13 @@
 						<label class="label py-0" for="title"><span class="label-text">Title</span></label>
 					</td>
 					<td class="min-w-0 p-0">
-						<input id="title" name="title" class="input input-bordered w-full" bind:value={title} required />
+						<input
+							id="title"
+							name="title"
+							class="input input-bordered w-full"
+							bind:value={title}
+							required
+						/>
 						{#if form?.errors && 'title' in form.errors && form.errors.title}
 							<p class="mt-1 text-sm text-error">{form.errors.title[0]}</p>
 						{/if}
@@ -103,7 +134,9 @@
 				</tr>
 				<tr>
 					<td class="align-middle p-0">
-						<label class="label py-0" for="categoryId"><span class="label-text">Category</span></label>
+						<label class="label py-0" for="categoryId"
+							><span class="label-text">Category</span></label
+						>
 					</td>
 					<td class="min-w-0 p-0">
 						<select
@@ -165,8 +198,7 @@
 							name="excerpt"
 							class="textarea textarea-bordered w-full"
 							rows="2"
-							bind:value={excerpt}
-						></textarea>
+							bind:value={excerpt}></textarea>
 					</td>
 				</tr>
 			</AdminFormTable>
@@ -174,8 +206,14 @@
 
 		<section class="w-full min-w-0 space-y-4">
 			<h2 class="text-lg font-semibold">Content</h2>
-			<input type="hidden" name="content" value={content} />
-			<MarkdownEditor bind:value={content} />
+			<DocumentContentSection
+				bind:content
+				bind:contentType
+				bind:mediaUrl
+				pdfEmbedSrc={resolve(`/api/document-media/${data.doc.slug}`)}
+				{excerpt}
+				mediaUrlError={form?.errors?.mediaUrl?.[0]}
+			/>
 		</section>
 
 		<div class="flex flex-wrap gap-2">

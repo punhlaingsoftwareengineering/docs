@@ -4,6 +4,13 @@ export type DocTreeNode = {
 	children: DocTreeNode[];
 };
 
+export type CategoryListingItem = {
+	slug: string;
+	title: string;
+	excerpt: string | null;
+	children: CategoryListingItem[];
+};
+
 export type SidebarGroup = {
 	name: string;
 	slug: string;
@@ -37,11 +44,4 @@ export type DocumentOrderGroup = {
 	categoryId: string;
 	categoryName: string;
 	items: AdminDocumentOrderRow[];
-};
-
-export type FooterCategory = {
-	name: string;
-	slug: string;
-	entrySlug: string;
-	documents: { title: string; slug: string }[];
 };

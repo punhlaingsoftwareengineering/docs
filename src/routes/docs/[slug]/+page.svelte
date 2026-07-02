@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import DocsBreadcrumbs from '$lib/components/docs/DocsBreadcrumbs.svelte';
+	import DocMediaViewer from '$lib/components/docs/DocMediaViewer.svelte';
 	import DocsPageShell from '$lib/components/docs/DocsPageShell.svelte';
 	import DocsPrevNext from '$lib/components/docs/DocsPrevNext.svelte';
 	import DocsTableOfContents from '$lib/components/docs/DocsTableOfContents.svelte';
@@ -13,7 +14,11 @@
 
 <PageTitle title={data.doc.title} appName={data.site.appName} />
 
-<DocsPageShell sidebarGroups={data.sidebarGroups} currentSlug={data.doc.slug}>
+<DocsPageShell
+	sidebarGroups={data.sidebarGroups}
+	currentSlug={data.doc.slug}
+	currentCategorySlug={data.doc.categorySlug}
+>
 	{#if data.headings.length > 0}
 		{#snippet toc()}
 			<DocsTableOfContents headings={data.headings} />
@@ -28,6 +33,7 @@
 
 	<DocsBreadcrumbs
 		categoryName={data.doc.categoryName}
+		categorySlug={data.doc.categorySlug}
 		ancestors={data.ancestors}
 		currentTitle={data.doc.title}
 	/>
@@ -43,8 +49,49 @@
 		{/if}
 	</header>
 
-	{#if data.html}
-		<div class="prose docs-prose max-w-none">{@html data.html}</div>
+	{#if data.contentType === 'markdown'}
+		{#if data.html}
+			<!-- eslint-disable-next-line svelte/no-at-html-tags -->
+			<div class="prose docs-prose max-w-none">{@html data.html}</div>
+		{/if}
+	{:else if data.contentType === 'html'}
+		{#if data.html}
+			<!-- eslint-disable-next-line svelte/no-at-html-tags -->
+			<div class="prose docs-prose max-w-none">{@html data.html}</div>
+		{/if}
+	{:else if data.contentType === 'csv'}
+		{#if data.csv}
+			<div class="overflow-x-auto rounded-box border border-base-300 bg-base-100">
+				<table class="table table-sm">
+					{#if data.csv.header.length > 0}
+						<thead>
+							<tr>
+								{#each data.csv.header as col, i (i)}
+									<th>{col}</th>
+								{/each}
+							</tr>
+						</thead>
+					{/if}
+					<tbody>
+						{#each data.csv.rows as row, r (r)}
+							<tr>
+								{#each row as cell, c (c)}
+									<td class="whitespace-pre-wrap">{cell}</td>
+								{/each}
+							</tr>
+						{/each}
+					</tbody>
+				</table>
+			</div>
+		{/if}
+	{:else}
+		<DocMediaViewer
+			contentType={data.contentType}
+			mediaUrl={data.doc.mediaUrl}
+			embedSrc={data.contentType === 'pdf' ? resolve(`/api/document-media/${data.doc.slug}`) : null}
+			excerpt={data.doc.excerpt}
+			notesHtml={data.html}
+		/>
 	{/if}
 
 	{#if data.hasChildren}

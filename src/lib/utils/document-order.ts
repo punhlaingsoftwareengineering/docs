@@ -30,7 +30,9 @@ export function computeDepthMap(
 	return cache;
 }
 
-export function flattenCategoryDocumentsForOrder(docs: OrderableDocument[]): AdminDocumentOrderRow[] {
+export function flattenCategoryDocumentsForOrder(
+	docs: OrderableDocument[]
+): AdminDocumentOrderRow[] {
 	const depthMap = computeDepthMap(docs);
 	const childrenByParent = new Map<string | null, OrderableDocument[]>();
 

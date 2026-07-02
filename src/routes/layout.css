@@ -1,6 +1,8 @@
 @import 'tailwindcss';
 @plugin 'daisyui' {
-	themes: winter --default, night --prefersdark;
+	themes:
+		winter --default,
+		night --prefersdark;
 }
 @plugin '@tailwindcss/forms';
 @plugin '@tailwindcss/typography';
@@ -15,5 +17,45 @@
 	.input :where(input, textarea, select):focus-visible {
 		outline: none;
 		box-shadow: none;
+	}
+
+	@media (max-width: 1023px) {
+		.admin-form-table {
+			display: block;
+			border-spacing: 0;
+		}
+
+		.admin-form-table colgroup {
+			display: none;
+		}
+
+		.admin-form-table tbody {
+			display: block;
+		}
+
+		.admin-form-table tr {
+			display: flex;
+			flex-direction: column;
+			gap: 0.75rem;
+			margin-bottom: 1rem;
+			padding-bottom: 1rem;
+			border-bottom: 1px solid color-mix(in oklch, var(--color-base-content) 12%, transparent);
+		}
+
+		.admin-form-table tr:last-child {
+			margin-bottom: 0;
+			padding-bottom: 0;
+			border-bottom: none;
+		}
+
+		.admin-form-table td {
+			display: block;
+			width: 100% !important;
+			padding: 0 !important;
+		}
+
+		.admin-form-table td[aria-hidden='true'] {
+			display: none;
+		}
 	}
 }

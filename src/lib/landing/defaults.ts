@@ -57,29 +57,12 @@ export const DEFAULT_FEATURES_ITEMS: LandingFeature[] = [
 	}
 ];
 
-export const DEFAULT_CODE_PREVIEW_HEADING = 'Markdown-first content';
+export const DEFAULT_WELCOME_VIDEO_HEADING = 'Welcome to the team';
 
-export const DEFAULT_CODE_PREVIEW_SUBTITLE =
-	'Write docs in plain markdown through the admin CMS. Published pages power public documentation, search, and navigation.';
+export const DEFAULT_WELCOME_VIDEO_SUBTITLE =
+	'A quick overview for new and returning employees — how to find what you need and get started with our documentation.';
 
-export const DEFAULT_CODE_PREVIEW_TERMINAL_LABEL = 'admin — documents';
-
-export const DEFAULT_CODE_PREVIEW_LINES = [
-	'$ open /admin/documents',
-	'',
-	'# Introduction',
-	'',
-	'Welcome to your documentation site. Write markdown',
-	'in the admin editor — stored in Postgres and published',
-	'to `/docs/` with search and nested navigation.',
-	'',
-	'## Local setup',
-	'',
-	'```bash',
-	'pnpm install',
-	'pnpm dev',
-	'```'
-];
+export const DEFAULT_WELCOME_VIDEO_URL = '';
 
 export const DEFAULT_DOCS_CATEGORIES_HEADING = 'Browse by category';
 
@@ -90,6 +73,14 @@ export const DEFAULT_DOCS_CATEGORIES_CTA_LABEL = 'View all docs';
 
 export const DEFAULT_DOCS_CATEGORIES_CTA_URL = '/docs';
 
+export const DEFAULT_CATEGORY_BADGES: Record<string, string> = {
+	'getting-started': 'Start',
+	guides: 'Learn',
+	reference: 'Reference',
+	examples: 'Code',
+	changelog: 'Updates'
+};
+
 export const DEFAULT_DOCS_CATEGORY_DESCRIPTIONS: Record<string, string> = {
 	'getting-started': 'Install, configure, and publish your first doc page.',
 	guides: 'Deep dives into workflows, auth, deployment, and content management.',
@@ -97,6 +88,22 @@ export const DEFAULT_DOCS_CATEGORY_DESCRIPTIONS: Record<string, string> = {
 	examples: 'Recipes and sample projects to copy and adapt.',
 	changelog: 'Version history, deprecations, and upgrade paths.'
 };
+
+export const LANDING_CATEGORY_DOC_LIMIT = 4;
+
+export function categoryBadgeForSlug(slug: string, name: string): string {
+	return DEFAULT_CATEGORY_BADGES[slug] ?? name.split(/\s+/)[0]?.slice(0, 12) ?? 'Docs';
+}
+
+export function categoryDescriptionForSlug(
+	slug: string,
+	name: string,
+	descriptions: Record<string, string>
+): string {
+	return (
+		descriptions[slug] ?? `Browse ${name.toLowerCase()} documentation and guides.`
+	);
+}
 
 export const DEFAULT_LANDING_CTA_HEADING = 'Ready to dive in?';
 

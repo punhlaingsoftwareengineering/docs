@@ -3,8 +3,12 @@
 	import { resolve } from '$app/paths';
 	import AdminFormTable from '$lib/components/admin/AdminFormTable.svelte';
 	import AdminHeader from '$lib/components/admin/AdminHeader.svelte';
-	import MarkdownEditor from '$lib/components/admin/MarkdownEditor.svelte';
+	import DocumentContentSection from '$lib/components/admin/DocumentContentSection.svelte';
 	import FormAlert from '$lib/components/FormAlert.svelte';
+	import {
+		DEFAULT_DOCUMENT_CONTENT_TYPE,
+		type DocumentContentType
+	} from '$lib/constants/document-content';
 	import { formEnhance } from '$lib/utils/form-enhance';
 	import type { PageData } from './$types';
 
@@ -17,6 +21,8 @@
 	let { data, form }: { data: PageData; form: FormState } = $props();
 
 	let content = $state('');
+	let contentType = $state<DocumentContentType>(DEFAULT_DOCUMENT_CONTENT_TYPE);
+	let mediaUrl = $state('');
 	let title = $state('');
 	let slug = $state('');
 	let excerpt = $state('');
@@ -33,6 +39,9 @@
 			slug = (values.slug as string) ?? '';
 			excerpt = (values.excerpt as string) ?? '';
 			tags = (values.tags as string) ?? '';
+			content = (values.content as string) ?? '';
+			contentType = (values.contentType as DocumentContentType) ?? DEFAULT_DOCUMENT_CONTENT_TYPE;
+			mediaUrl = (values.mediaUrl as string) ?? '';
 			categoryId = (values.categoryId as string) ?? categoryId;
 			parentDocumentId = (values.parentDocumentId as string) ?? '';
 			return;
@@ -60,7 +69,7 @@
 	]}
 />
 
-<div class="flex min-w-0 flex-1 flex-col space-y-6 p-6">
+<div class="flex min-w-0 flex-1 flex-col space-y-6 p-4 sm:p-6">
 	<FormAlert {form} />
 
 	{#if !hasCategories}
@@ -109,7 +118,9 @@
 				</tr>
 				<tr>
 					<td class="align-middle p-0">
-						<label class="label py-0" for="categoryId"><span class="label-text">Category</span></label>
+						<label class="label py-0" for="categoryId"
+							><span class="label-text">Category</span></label
+						>
 					</td>
 					<td class="min-w-0 p-0">
 						<select
@@ -189,8 +200,7 @@
 							class="textarea textarea-bordered w-full"
 							rows="2"
 							bind:value={excerpt}
-							disabled={!hasCategories}
-						></textarea>
+							disabled={!hasCategories}></textarea>
 					</td>
 				</tr>
 			</AdminFormTable>
@@ -198,12 +208,20 @@
 
 		<section class="w-full min-w-0 space-y-4">
 			<h2 class="text-lg font-semibold">Content</h2>
-			<input type="hidden" name="content" value={content} />
-			<MarkdownEditor bind:value={content} />
+			<DocumentContentSection
+				bind:content
+				bind:contentType
+				bind:mediaUrl
+				{excerpt}
+				disabled={!hasCategories}
+				mediaUrlError={form?.errors?.mediaUrl?.[0]}
+			/>
 		</section>
 
 		<div class="flex gap-2">
-			<button type="submit" class="btn btn-primary" disabled={!hasCategories}>Create document</button>
+			<button type="submit" class="btn btn-primary" disabled={!hasCategories}
+				>Create document</button
+			>
 			<a href={resolve('/admin/documents')} class="btn btn-ghost">Cancel</a>
 		</div>
 	</form>

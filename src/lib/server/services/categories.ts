@@ -1,18 +1,27 @@
 import { asc, eq, sql } from 'drizzle-orm';
 import { db } from '$lib/server/db';
 import { category, document } from '$lib/server/db/schema';
-import type { FooterCategory } from '$lib/types/docs-tree';
-import type { LandingCategoryCard } from '$lib/types/landing';
+import type { CategoryListingItem } from '$lib/types/docs-tree';
+import type { LandingCategorySection } from '$lib/types/landing';
+import {
+	categoryBadgeForSlug,
+	categoryDescriptionForSlug,
+	LANDING_CATEGORY_DOC_LIMIT
+} from '$lib/landing/defaults';
 import { slugify } from '$lib/utils/slug';
-import { listDocumentsForTree } from '$lib/server/services/docs';
+import { buildCategoryListingTree, listDocumentsForTree } from '$lib/server/services/docs';
 
 export async function listCategories() {
 	return db.select().from(category).orderBy(asc(category.sortOrder));
 }
 
-export async function listFooterCategories(): Promise<FooterCategory[]> {
+export async function listLandingCategorySections(
+	descriptions: Record<string, string>,
+	options?: { docLimit?: number }
+): Promise<LandingCategorySection[]> {
+	const docLimit = options?.docLimit ?? LANDING_CATEGORY_DOC_LIMIT;
 	const [categories, docs] = await Promise.all([
-		listCategories(),
+		listCategoriesWithCounts(),
 		listDocumentsForTree({ includeUnpublished: false })
 	]);
 
@@ -25,38 +34,50 @@ export async function listFooterCategories(): Promise<FooterCategory[]> {
 				.filter((doc) => !doc.parentDocumentId)
 				.sort((a, b) => a.sortOrder - b.sortOrder || a.title.localeCompare(b.title));
 
-			const entry = roots[0] ?? catDocs[0];
-
 			return {
 				name: cat.name,
 				slug: cat.slug,
-				entrySlug: entry.slug,
-				documents: roots.map((doc) => ({ title: doc.title, slug: doc.slug }))
+				description: categoryDescriptionForSlug(cat.slug, cat.name, descriptions),
+				badge: categoryBadgeForSlug(cat.slug, cat.name),
+				documentCount: catDocs.length,
+				documents: roots.slice(0, docLimit).map((doc) => ({
+					title: doc.title,
+					slug: doc.slug,
+					excerpt: doc.excerpt
+				}))
 			};
 		})
-		.filter((cat): cat is FooterCategory => cat !== null);
+		.filter((section): section is LandingCategorySection => section !== null);
 }
 
-export async function listLandingCategories(): Promise<LandingCategoryCard[]> {
+export async function getFirstPublishedCategory() {
 	const [categories, docs] = await Promise.all([
-		listCategoriesWithCounts(),
+		listCategories(),
 		listDocumentsForTree({ includeUnpublished: false })
 	]);
 
-	return categories.map((cat) => {
-		const catDocs = docs.filter((doc) => doc.categoryId === cat.id);
-		const roots = catDocs
-			.filter((doc) => !doc.parentDocumentId)
-			.sort((a, b) => a.sortOrder - b.sortOrder || a.title.localeCompare(b.title));
-		const entry = roots[0] ?? catDocs[0];
+	for (const cat of categories) {
+		if (docs.some((doc) => doc.categoryId === cat.id)) {
+			return cat;
+		}
+	}
 
-		return {
-			name: cat.name,
-			slug: cat.slug,
-			entrySlug: entry?.slug ?? cat.slug,
-			documentCount: cat.documentCount
-		};
-	});
+	return null;
+}
+
+export async function getCategoryListingBySlug(slug: string): Promise<{
+	category: typeof category.$inferSelect;
+	items: CategoryListingItem[];
+} | null> {
+	const row = await getCategoryBySlug(slug);
+	if (!row) return null;
+
+	const docs = await listDocumentsForTree({ categoryId: row.id, includeUnpublished: false });
+
+	return {
+		category: row,
+		items: buildCategoryListingTree(docs)
+	};
 }
 
 export async function listCategoriesWithCounts() {
@@ -84,11 +105,7 @@ export async function getCategoryBySlug(slug: string) {
 	return row ?? null;
 }
 
-export async function createCategory(data: {
-	name: string;
-	slug?: string;
-	sortOrder?: number;
-}) {
+export async function createCategory(data: { name: string; slug?: string; sortOrder?: number }) {
 	const slug = data.slug?.trim() || slugify(data.name);
 	const [row] = await db
 		.insert(category)

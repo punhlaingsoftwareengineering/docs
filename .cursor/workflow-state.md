@@ -8,7 +8,7 @@
 
 - Content: **database only** (Postgres via Drizzle)
 - Editor: **CodeMirror** split pane, manual save
-- Categories: fixed set (Getting Started, Guides, Reference, Examples, Changelog)
+- Categories: managed in admin (`/admin/categories`)
 - Slug: auto from title with manual override
 - Admin sidebar: fixed left
 - List sort default: last updated
@@ -23,8 +23,7 @@
 ## DB scripts
 
 - `pnpm run db:ensure` — create CMS tables (non-interactive)
-- `pnpm run db:seed` — seed categories, site_settings, sample docs
-- `pnpm exec drizzle-kit push --force` — interactive; use db:ensure if push prompts fail
+- `pnpm run db:push` — interactive; use db:ensure if push prompts fail
 
 ## Admin routes
 

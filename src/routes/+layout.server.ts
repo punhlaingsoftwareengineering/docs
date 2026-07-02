@@ -1,6 +1,6 @@
 import { APP_NAME } from '$lib/config/app-name';
 import { getSiteSettings } from '$lib/server/services/settings';
-import { hasAdmin } from '$lib/server/users';
+import { hasAdmin, isAdminUser } from '$lib/server/users';
 import { getSiteIconHref } from '$lib/utils/site-icon';
 import type { LayoutServerLoad } from './$types';
 
@@ -13,11 +13,14 @@ export const load: LayoutServerLoad = async (event) => {
 			siteTitle: settings.siteTitle,
 			tagline: settings.tagline,
 			appName: APP_NAME,
-			siteIconHref: getSiteIconHref(settings)
+			siteIconHref: getSiteIconHref(settings),
+			navLinksEnabled: settings.navLinksEnabled,
+			navLinks: settings.navLinks ?? []
 		},
 		auth: {
 			hasAdmin: adminExists,
-			isSignedIn: Boolean(user)
+			isSignedIn: Boolean(user),
+			isAdmin: isAdminUser(user)
 		}
 	};
 };

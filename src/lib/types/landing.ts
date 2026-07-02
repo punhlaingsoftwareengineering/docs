@@ -19,8 +19,7 @@ export type ResolvedLandingSettings = {
 	codePreview: {
 		heading: string;
 		subtitle: string;
-		terminalLabel: string;
-		lines: string[];
+		videoUrl: string;
 	};
 	docsCategories: {
 		heading: string;
@@ -39,9 +38,15 @@ export type ResolvedLandingSettings = {
 	};
 };
 
-export type LandingCategoryCard = {
+export type LandingCategorySection = {
 	name: string;
 	slug: string;
-	entrySlug: string;
+	description: string;
+	badge: string;
 	documentCount: number;
+	documents: {
+		title: string;
+		slug: string;
+		excerpt: string | null;
+	}[];
 };

@@ -1,19 +1,17 @@
-import { listFooterCategories, listLandingCategories } from '$lib/server/services/categories';
+import { listLandingCategorySections } from '$lib/server/services/categories';
 import { getSiteSettings } from '$lib/server/services/settings';
 import { resolveLandingSettings } from '$lib/landing/resolve-settings';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async () => {
-	const [settings, footerCategories, landingCategories] = await Promise.all([
-		getSiteSettings(),
-		listFooterCategories(),
-		listLandingCategories()
-	]);
+	const settings = await getSiteSettings();
+	const landing = resolveLandingSettings(settings);
+
+	const categorySections = await listLandingCategorySections(landing.docsCategories.descriptions);
 
 	return {
 		settings,
-		landing: resolveLandingSettings(settings),
-		footerCategories,
-		landingCategories
+		landing,
+		categorySections
 	};
 };

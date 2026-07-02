@@ -4,6 +4,10 @@
 	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
 	import AdminHeader from '$lib/components/admin/AdminHeader.svelte';
+	import {
+		DOCUMENT_CONTENT_TYPE_LABELS,
+		type DocumentContentType
+	} from '$lib/constants/document-content';
 
 	let { data } = $props();
 
@@ -59,13 +63,10 @@
 
 <AdminHeader
 	title="Documents"
-	breadcrumbs={[
-		{ label: 'Admin', href: resolve('/admin') },
-		{ label: 'Documents' }
-	]}
+	breadcrumbs={[{ label: 'Admin', href: resolve('/admin') }, { label: 'Documents' }]}
 />
 
-<div class="flex-1 space-y-4 p-6">
+<div class="flex-1 space-y-4 p-4 sm:p-6">
 	{#if errorMessage}
 		<div class="alert alert-error" role="alert">
 			<span>{errorMessage}</span>
@@ -107,7 +108,9 @@
 	</div>
 
 	{#if data.documents.length === 0}
-		<div class="rounded-box border border-dashed border-base-300 p-8 text-center text-base-content/60">
+		<div
+			class="rounded-box border border-dashed border-base-300 p-8 text-center text-base-content/60"
+		>
 			No documents match your filters.
 		</div>
 	{:else}
@@ -116,6 +119,7 @@
 				<thead>
 					<tr>
 						<th>Title</th>
+						<th>Type</th>
 						<th>Level</th>
 						<th>Category</th>
 						<th>Status</th>
@@ -127,6 +131,13 @@
 					{#each data.documents as doc (doc.id)}
 						<tr class="hover">
 							<td class="font-medium">{doc.title}</td>
+							<td>
+								<span class="badge badge-ghost badge-sm">
+									{DOCUMENT_CONTENT_TYPE_LABELS[
+										(doc.contentType ?? 'markdown') as DocumentContentType
+									]}
+								</span>
+							</td>
 							<td>
 								<span class="badge badge-info badge-sm">Level {doc.depth}</span>
 							</td>

@@ -6,13 +6,14 @@ import {
 	boolean,
 	integer,
 	uuid,
-	primaryKey,
 	uniqueIndex,
 	jsonb,
 	type AnyPgColumn
 } from 'drizzle-orm/pg-core';
 import type { FooterSocialLink } from '$lib/types/footer';
+import type { NavLink } from '$lib/types/nav';
 import type { LandingFeature } from '$lib/types/landing';
+import { user } from './auth.schema';
 
 export * from './auth.schema';
 
@@ -30,6 +31,8 @@ export const document = pgTable(
 		slug: text('slug').notNull(),
 		title: text('title').notNull(),
 		content: text('content').notNull().default(''),
+		contentType: text('content_type').notNull().default('markdown'),
+		mediaUrl: text('media_url'),
 		excerpt: text('excerpt'),
 		published: boolean('published').notNull().default(false),
 		categoryId: uuid('category_id')
@@ -57,6 +60,7 @@ export const tag = pgTable('tag', {
 export const documentTag = pgTable(
 	'document_tag',
 	{
+		id: uuid('id').primaryKey().defaultRandom(),
 		documentId: uuid('document_id')
 			.notNull()
 			.references(() => document.id, { onDelete: 'cascade' }),
@@ -64,7 +68,9 @@ export const documentTag = pgTable(
 			.notNull()
 			.references(() => tag.id, { onDelete: 'cascade' })
 	},
-	(table) => [primaryKey({ columns: [table.documentId, table.tagId] })]
+	(table) => [
+		uniqueIndex('document_tag_document_id_tag_id_idx').on(table.documentId, table.tagId)
+	]
 );
 
 export const siteSettings = pgTable('site_settings', {
@@ -94,6 +100,7 @@ export const siteSettings = pgTable('site_settings', {
 	codePreviewSubtitle: text('code_preview_subtitle'),
 	codePreviewTerminalLabel: text('code_preview_terminal_label'),
 	codePreviewLines: jsonb('code_preview_lines').$type<string[]>(),
+	welcomeVideoUrl: text('welcome_video_url'),
 	docsCategoriesHeading: text('docs_categories_heading'),
 	docsCategoriesSubtitle: text('docs_categories_subtitle'),
 	docsCategoriesCtaLabel: text('docs_categories_cta_label'),
@@ -112,11 +119,30 @@ export const siteSettings = pgTable('site_settings', {
 	copyrightNotice: text('copyright_notice').notNull().default('zarnihlawn.com'),
 	footerSocialEnabled: boolean('footer_social_enabled').notNull().default(false),
 	footerSocialLinks: jsonb('footer_social_links').$type<FooterSocialLink[]>(),
+	navLinksEnabled: boolean('nav_links_enabled').notNull().default(false),
+	navLinks: jsonb('nav_links').$type<NavLink[]>(),
 	updatedAt: timestamp('updated_at')
 		.defaultNow()
 		.$onUpdate(() => new Date())
 		.notNull()
 });
+
+export const adminInvitation = pgTable(
+	'admin_invitation',
+	{
+		id: uuid('id').primaryKey().defaultRandom(),
+		email: text('email').notNull(),
+		token: text('token').notNull(),
+		invitedByUserId: text('invited_by_user_id')
+			.notNull()
+			.references(() => user.id, { onDelete: 'cascade' }),
+		expiresAt: timestamp('expires_at').notNull(),
+		acceptedAt: timestamp('accepted_at'),
+		revokedAt: timestamp('revoked_at'),
+		createdAt: timestamp('created_at').defaultNow().notNull()
+	},
+	(table) => [uniqueIndex('admin_invitation_token_idx').on(table.token)]
+);
 
 export const categoryRelations = relations(category, ({ many }) => ({
 	documents: many(document)
