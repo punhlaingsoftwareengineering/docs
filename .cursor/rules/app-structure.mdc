@@ -12,27 +12,25 @@ Personal software documentation site. Markdown-only content, rendered for reader
 ## Audience
 
 - **Readers:** public visitors browsing documentation
-- **Admins:** invited users who manage content (bootstrap creates the first admin)
+- **Admins:** employees with Docs service access via employee-portal access roles (or portal admins)
 
 ## Auth model
 
-- First registered user becomes **admin** (bootstrap)
-- After bootstrap: **invite-only** — new admins must be invited at `/admin/users`
-- Invitations emailed via Gmail SMTP (or copy-link fallback); acceptance at `/invite/[token]`
-- Admin uses in-app editor to create, edit, and manage doc pages
-- **Mandatory TOTP (authenticator app)** for every signed-in admin — public doc visitors are never prompted
-- Enrollment at `/admin/security/2fa` after first sign-in; sign-in challenge at `/login/two-factor`
-- 2FA cannot be disabled once enabled
+- **Employee-portal SSO** — shared Better Auth session cookie across `portal.*`, `drive.*`, `docs.*`
+- Sign in at employee portal; expired session → redirect to `portalLoginUrl`
+- **No** standalone GitHub login, invites, or docs 2FA
+- `/admin` requires portal session + `canAccessDocsAdmin` (Docs service on user's access role, or portal admin)
+- Grant CMS access: portal **Settings → Access roles** → assign **Docs** service
 
 ## Content
 
-- Storage format: **Markdown only** in Postgres (`document` table)
+- Storage format: **Markdown only** in Postgres (`document` table) on `DATABASE_URL` (CMS DB)
 - Public site reads published documents from DB
 - Style: software documentation (guides, reference, API docs)
 
 ## v1 primary action
 
-Admin signs in and manages documentation via CodeMirror editor at `/admin/documents/*`.
+Admin signs in via portal and manages documentation via CodeMirror editor at `/admin/documents/*`.
 
 ## Folder conventions
 
@@ -40,3 +38,4 @@ Admin signs in and manages documentation via CodeMirror editor at `/admin/docume
 - `src/lib/components/docs/` — public docs layout
 - `src/lib/schemas/` — Zod validation schemas
 - `src/lib/server/services/` — docs, settings, categories
+- `src/lib/server/portal-access.ts` — portal permission checks

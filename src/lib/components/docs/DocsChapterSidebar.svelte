@@ -23,26 +23,28 @@
 	}
 </script>
 
-{#snippet treeNodes(nodes: DocTreeNode[])}
+{#snippet treeNodes(nodes: DocTreeNode[], depth = 0)}
 	{#each nodes as node (node.slug)}
 		{#if node.children.length > 0}
 			<li>
 				<a
 					href={resolve(`/docs/${node.slug}`)}
-					class:menu-active={isActive(node.slug)}
+					class="rounded-lg {isActive(node.slug) ? 'menu-active font-medium' : ''}"
+					style="padding-left: {0.75 + depth * 0.75}rem"
 					onclick={() => onnavigate?.()}
 				>
 					{node.title}
 				</a>
 				<ul>
-					{@render treeNodes(node.children)}
+					{@render treeNodes(node.children, depth + 1)}
 				</ul>
 			</li>
 		{:else}
 			<li>
 				<a
 					href={resolve(`/docs/${node.slug}`)}
-					class:menu-active={isActive(node.slug)}
+					class="rounded-lg {isActive(node.slug) ? 'menu-active font-medium' : ''}"
+					style="padding-left: {0.75 + depth * 0.75}rem"
 					onclick={() => onnavigate?.()}
 				>
 					{node.title}
@@ -52,15 +54,14 @@
 	{/each}
 {/snippet}
 
-<nav aria-label="Documentation chapters" class="pt-4">
-	<ul class="menu menu-sm w-full">
+<nav aria-label="Documentation chapters">
+	<ul class="menu menu-md w-full gap-0.5 px-2">
 		{#each groups as group (group.slug)}
 			{#if group.items.length > 0}
 				<li class="menu-title">
 					<a
 						href={resolve(`/docs/category/${group.slug}`)}
-						class:font-semibold={isCategoryActive(group.slug)}
-						class:text-primary={isCategoryActive(group.slug)}
+						class="rounded-lg {isCategoryActive(group.slug) ? 'font-semibold text-primary' : ''}"
 						onclick={() => onnavigate?.()}
 					>
 						{group.name}

@@ -1,4 +1,5 @@
 import { fail, isRedirect, redirect } from '@sveltejs/kit';
+import { requireDocsAdmin } from '$lib/server/auth-guards';
 import { auth } from '$lib/server/auth';
 import { settingsFormSchema } from '$lib/schemas/settings';
 import { deleteAllDrafts } from '$lib/server/services/docs';
@@ -22,8 +23,9 @@ export const load: PageServerLoad = async (event) => {
 };
 
 export const actions: Actions = {
-	updateSettings: async ({ request }) => {
-		const raw = Object.fromEntries(await request.formData());
+	updateSettings: async (event) => {
+		await requireDocsAdmin(event);
+		const raw = Object.fromEntries(await event.request.formData());
 		const parsed = settingsFormSchema.safeParse(raw);
 
 		if (!parsed.success) {
@@ -44,8 +46,9 @@ export const actions: Actions = {
 		return { success: true, message: 'Settings saved.' };
 	},
 
-	uploadSiteIcon: async ({ request }) => {
-		const formData = await request.formData();
+	uploadSiteIcon: async (event) => {
+		await requireDocsAdmin(event);
+		const formData = await event.request.formData();
 		const file = formData.get('siteIcon');
 
 		if (!(file instanceof File) || file.size === 0) {
@@ -61,7 +64,8 @@ export const actions: Actions = {
 		}
 	},
 
-	removeSiteIcon: async () => {
+	removeSiteIcon: async (event) => {
+		await requireDocsAdmin(event);
 		try {
 			await clearSiteIcon();
 			return { success: true, message: 'Site icon removed.' };
@@ -71,12 +75,14 @@ export const actions: Actions = {
 		}
 	},
 
-	deleteDrafts: async () => {
+	deleteDrafts: async (event) => {
+		await requireDocsAdmin(event);
 		await deleteAllDrafts();
 		return { success: true, message: 'All draft documents deleted.' };
 	},
 
 	signOut: async (event) => {
+		await requireDocsAdmin(event);
 		try {
 			await auth.api.signOut({ headers: event.request.headers });
 		} catch (error) {

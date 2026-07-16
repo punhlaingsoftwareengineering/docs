@@ -14,28 +14,25 @@ alwaysApply: false
 | `/docs` | public | Documentation index (redirects to first category) |
 | `/docs/category/[slug]` | public | Category section index listing child docs |
 | `/docs/[slug]` | public | Single published doc |
-| `/login` | public | User sign-in |
-| `/admin/login` | public | Admin sign-in; one-time create-admin when bootstrapping |
-| `/invite/[token]` | public | Accept admin invitation |
-| `/login/two-factor` | admin | TOTP challenge after admin sign-in |
+| `/auth/login` | public | Session expired / sign-in via employee portal link |
 | `/admin` | admin | Dashboard |
 | `/admin/documents` | admin | Document list |
 | `/admin/documents/new` | admin | Create document |
 | `/admin/documents/[id]` | admin | CodeMirror editor |
-| `/admin/users` | admin | Invite and manage admins |
-| `/admin/settings` | admin | Site + account settings |
-| `/admin/security/2fa` | admin | Mandatory 2FA enrollment |
-| `/api/auth/*` | public | Better Auth API (hooks + catch-all route) |
+| `/admin/categories` | admin | Category management |
+| `/admin/settings` | admin | Site settings |
+| `/api/auth/*` | public | Better Auth API + `POST /api/auth/logout` |
 | `/api/document-media/[slug]` | public | Same-origin PDF proxy for in-page embeds |
 
 ## Groups
 
-- **Public:** `/`, `/docs`, `/docs/*`, `/login`, `/admin/login`, `/invite/*`
-- **Protected:** `/admin`, `/admin/*` (except `/admin/login`) — require admin role via `requireAdmin()`
-- **Auth:** `/login` redirects signed-in users to `/`; `/admin/login` redirects admins to `/admin`
+- **Public:** `/`, `/docs`, `/docs/*`, `/auth/login`
+- **Protected:** `/admin`, `/admin/*` — `requireDocsAdmin()` in `admin/+layout.server.ts`
+- **Unauthenticated admin:** redirect to employee portal login (`portalLoginUrl`)
+- **Authenticated, no Docs access:** 403
 
 ## Conventions
 
 - Use `resolve()` from `$app/paths` for internal links
-- `/admin/**` uses `+layout.server.ts` for auth guard (`/admin/login` is exempt)
-- Unpublished docs return 404 for public; admin can preview when logged in
+- `/admin/**` uses `+layout.server.ts` for auth guard
+- Unpublished docs return 404 for public; users with `canAccessDocsAdmin` can preview when signed in

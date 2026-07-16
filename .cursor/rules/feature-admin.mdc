@@ -6,11 +6,11 @@ alwaysApply: false
 
 # Admin feature
 
-- All `/admin/*` routes require `event.locals.user` (redirect to `/login` in `+layout.server.ts`)
+- All `/admin/*` routes require portal session + `canAccessDocsAdmin` (`requireDocsAdmin` in `+layout.server.ts`)
 - Fixed left sidebar via `AdminSidebar.svelte`; page content uses `AdminHeader.svelte`
 - Multi-field forms: `AdminFormTable` + 4-column invisible table (see `admin-form-table` rule/skill)
 - Document sort order: drag-and-drop on dashboard (`DocumentOrderPanel`), not in document editor forms
 - Documents live at `/admin/documents`, editor at `/admin/documents/[id]`, create at `/admin/documents/new`
 - Form actions validate with Zod schemas from `$lib/schemas/`; return `fail(400, { errors })`
-- Sign out: `auth.api.signOut` in settings or layout action, redirect `/`
+- Sign out: `POST /api/auth/logout`, redirect `/`
 - CodeMirror editor: manual save only (no autosave)

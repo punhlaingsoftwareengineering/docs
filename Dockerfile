@@ -9,13 +9,16 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc .env.test ./
 RUN pnpm install --frozen-lockfile
 
 COPY . .
-RUN cp .env.test .env && pnpm run build
+RUN cp .env.test .env \
+	&& pnpm run prepare \
+	&& pnpm run build
 
 # Runtime stage
 FROM node:22-slim
 
 ENV PORT=1026
 ENV HOST=0.0.0.0
+ENV BODY_SIZE_LIMIT=1000M
 
 WORKDIR /app
 

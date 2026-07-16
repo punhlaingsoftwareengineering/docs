@@ -1,7 +1,12 @@
 import 'dotenv/config';
-import { neon } from '@neondatabase/serverless';
+import pg from 'pg';
 
-const sql = neon(process.env.DATABASE_URL!);
+const databaseUrl = process.env.DATABASE_URL?.trim();
+if (!databaseUrl) {
+	throw new Error('DATABASE_URL is not set. Copy .env.example to .env and set the CMS Postgres URL.');
+}
+
+const pool = new pg.Pool({ connectionString: databaseUrl });
 
 const statements = [
 	`CREATE TABLE IF NOT EXISTS "category" (
@@ -43,7 +48,7 @@ const statements = [
 		"hero_primary_cta" text DEFAULT 'Browse documentation' NOT NULL,
 		"hero_primary_url" text DEFAULT '/docs' NOT NULL,
 		"hero_secondary_cta" text DEFAULT 'Admin sign in' NOT NULL,
-		"hero_secondary_url" text DEFAULT '/login' NOT NULL,
+		"hero_secondary_url" text DEFAULT '/admin' NOT NULL,
 		"default_published" boolean DEFAULT false NOT NULL,
 		"default_theme" text DEFAULT 'system' NOT NULL,
 		"updated_at" timestamp DEFAULT now() NOT NULL
@@ -117,29 +122,15 @@ const statements = [
 	`ALTER TABLE "site_settings" ADD COLUMN IF NOT EXISTS "footer_social_links" jsonb`,
 	`ALTER TABLE "site_settings" ADD COLUMN IF NOT EXISTS "nav_links_enabled" boolean DEFAULT false NOT NULL`,
 	`ALTER TABLE "site_settings" ADD COLUMN IF NOT EXISTS "nav_links" jsonb`,
-	`CREATE TABLE IF NOT EXISTS "admin_invitation" (
-		"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
-		"email" text NOT NULL,
-		"token" text NOT NULL,
-		"invited_by_user_id" text NOT NULL REFERENCES "user"("id") ON DELETE cascade,
-		"expires_at" timestamp NOT NULL,
-		"accepted_at" timestamp,
-		"revoked_at" timestamp,
-		"created_at" timestamp DEFAULT now() NOT NULL
-	)`,
-	`CREATE UNIQUE INDEX IF NOT EXISTS "admin_invitation_token_idx" ON "admin_invitation" ("token")`,
-	`ALTER TABLE "user" ADD COLUMN IF NOT EXISTS "role" text`,
-	`ALTER TABLE "user" ADD COLUMN IF NOT EXISTS "banned" boolean DEFAULT false`,
-	`ALTER TABLE "user" ADD COLUMN IF NOT EXISTS "ban_reason" text`,
-	`ALTER TABLE "user" ADD COLUMN IF NOT EXISTS "ban_expires" timestamp`,
-	`UPDATE "user" SET role = 'admin' WHERE role IS NULL`,
 	`ALTER TABLE "document" ADD COLUMN IF NOT EXISTS "content_type" text DEFAULT 'markdown' NOT NULL`,
 	`ALTER TABLE "document" ADD COLUMN IF NOT EXISTS "media_url" text`,
 	`UPDATE "document" SET content_type = 'markdown' WHERE content_type IS NULL`
 ];
 
 for (const statement of statements) {
-	await sql.query(statement);
+	await pool.query(statement);
 }
+
+await pool.end();
 
 console.log('CMS tables ensured.');

@@ -1,11 +1,11 @@
 import { error, json } from '@sveltejs/kit';
 import { documentIdSchema } from '$lib/schemas/document';
-import { assertAdminApi } from '$lib/server/auth-guards';
+import { assertDocsAdminApi } from '$lib/server/auth-guards';
 import { deleteDocument } from '$lib/server/services/docs';
 import type { RequestHandler } from './$types';
 
 export const DELETE: RequestHandler = async ({ params, locals }) => {
-	assertAdminApi(locals);
+	await assertDocsAdminApi(locals);
 
 	const parsed = documentIdSchema.safeParse(params);
 	if (!parsed.success) error(400, 'Invalid document');

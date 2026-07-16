@@ -1,17 +1,17 @@
 import { error } from '@sveltejs/kit';
 import { getDocumentBySlug } from '$lib/server/services/docs';
-import { isAdminUser } from '$lib/server/users';
+import { canPreviewUnpublishedDocs } from '$lib/server/users';
 import type { RequestHandler } from './$types';
 
 export const GET: RequestHandler = async ({ params, locals }) => {
-	const isAdmin = isAdminUser(locals.user);
-	const doc = await getDocumentBySlug(params.slug, { includeUnpublished: isAdmin });
+	const canPreview = await canPreviewUnpublishedDocs(locals.user?.id);
+	const doc = await getDocumentBySlug(params.slug, { includeUnpublished: canPreview });
 
 	if (!doc?.mediaUrl) {
 		error(404, 'Media not found');
 	}
 
-	if (!doc.published && !isAdmin) {
+	if (!doc.published && !canPreview) {
 		error(404, 'Media not found');
 	}
 

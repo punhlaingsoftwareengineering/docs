@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { invalidateAll } from '$app/navigation';
 	import { resolve } from '$app/paths';
+	import { fetchWithSession } from '$lib/client/fetch-session';
 	import { GripVertical, Pencil, Trash2 } from '@lucide/svelte';
 	import type { DocumentOrderGroup } from '$lib/types/docs-tree';
 	import { reorderSiblings, siblingKey } from '$lib/utils/document-order';
@@ -49,7 +50,7 @@
 		saving = true;
 		errorMessage = null;
 
-		const response = await fetch(resolve('/admin/api/documents/reorder'), {
+		const response = await fetchWithSession(resolve('/admin/api/documents/reorder'), {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({ categoryId, parentDocumentId, orderedIds })
@@ -100,7 +101,9 @@
 		saving = true;
 		errorMessage = null;
 
-		const response = await fetch(resolve(`/admin/api/documents/${id}`), { method: 'DELETE' });
+		const response = await fetchWithSession(resolve(`/admin/api/documents/${id}`), {
+			method: 'DELETE'
+		});
 		saving = false;
 
 		if (!response.ok) {

@@ -4,7 +4,6 @@
 	import DocMediaViewer from '$lib/components/docs/DocMediaViewer.svelte';
 	import DocsPageShell from '$lib/components/docs/DocsPageShell.svelte';
 	import DocsPrevNext from '$lib/components/docs/DocsPrevNext.svelte';
-	import DocsTableOfContents from '$lib/components/docs/DocsTableOfContents.svelte';
 	import PageTitle from '$lib/components/PageTitle.svelte';
 	import { slugify } from '$lib/utils/slug';
 
@@ -15,31 +14,28 @@
 <PageTitle title={data.doc.title} appName={data.site.appName} />
 
 <DocsPageShell
+	appName={data.site.appName}
 	sidebarGroups={data.sidebarGroups}
 	currentSlug={data.doc.slug}
 	currentCategorySlug={data.doc.categorySlug}
 >
-	{#if data.headings.length > 0}
-		{#snippet toc()}
-			<DocsTableOfContents headings={data.headings} />
-		{/snippet}
-	{/if}
+	{#snippet breadcrumbs()}
+		<DocsBreadcrumbs
+			categoryName={data.doc.categoryName}
+			categorySlug={data.doc.categorySlug}
+			ancestors={data.ancestors}
+			currentTitle={data.doc.title}
+		/>
+	{/snippet}
 
 	{#if data.isPreview}
-		<div class="alert alert-warning mb-6">
+		<div class="not-prose alert alert-warning mb-6">
 			<span>Draft preview — this page is not visible to visitors.</span>
 		</div>
 	{/if}
 
-	<DocsBreadcrumbs
-		categoryName={data.doc.categoryName}
-		categorySlug={data.doc.categorySlug}
-		ancestors={data.ancestors}
-		currentTitle={data.doc.title}
-	/>
-
-	<header class="mb-8 border-b border-base-300 pb-6">
-		<h1 id={titleId} class="docs-heading mt-4 text-3xl font-bold">{data.doc.title}</h1>
+	<header class="not-prose mb-6">
+		<h1 id={titleId} class="docs-heading text-3xl font-bold tracking-tight">{data.doc.title}</h1>
 		{#if data.doc.tags.length > 0}
 			<div class="mt-3 flex flex-wrap gap-2">
 				{#each data.doc.tags as tag (tag.id)}
@@ -52,16 +48,16 @@
 	{#if data.contentType === 'markdown'}
 		{#if data.html}
 			<!-- eslint-disable-next-line svelte/no-at-html-tags -->
-			<div class="prose docs-prose max-w-none">{@html data.html}</div>
+			<div class="docs-prose">{@html data.html}</div>
 		{/if}
 	{:else if data.contentType === 'html'}
 		{#if data.html}
 			<!-- eslint-disable-next-line svelte/no-at-html-tags -->
-			<div class="prose docs-prose max-w-none">{@html data.html}</div>
+			<div class="docs-prose">{@html data.html}</div>
 		{/if}
 	{:else if data.contentType === 'csv'}
 		{#if data.csv}
-			<div class="overflow-x-auto rounded-box border border-base-300 bg-base-100">
+			<div class="not-prose overflow-x-auto rounded-box border border-base-200 bg-base-100">
 				<table class="table table-sm">
 					{#if data.csv.header.length > 0}
 						<thead>
@@ -85,19 +81,21 @@
 			</div>
 		{/if}
 	{:else}
-		<DocMediaViewer
-			contentType={data.contentType}
-			mediaUrl={data.doc.mediaUrl}
-			embedSrc={data.contentType === 'pdf' ? resolve(`/api/document-media/${data.doc.slug}`) : null}
-			excerpt={data.doc.excerpt}
-			notesHtml={data.html}
-		/>
+		<div class="not-prose">
+			<DocMediaViewer
+				contentType={data.contentType}
+				mediaUrl={data.doc.mediaUrl}
+				embedSrc={data.contentType === 'pdf' ? resolve(`/api/document-media/${data.doc.slug}`) : null}
+				excerpt={data.doc.excerpt}
+				notesHtml={data.html}
+			/>
+		</div>
 	{/if}
 
 	{#if data.hasChildren}
-		<section class="mt-10 border-t border-base-300 pt-8">
+		<section class="not-prose mt-10 border-t border-base-200 pt-8">
 			<h2 class="mb-4 text-lg font-semibold">In this section</h2>
-			<ul class="menu menu-sm rounded-box border border-base-300 bg-base-100">
+			<ul class="menu menu-sm rounded-box border border-base-200 bg-base-200/40">
 				{#each data.childPages as child (child.slug)}
 					<li>
 						<a href={resolve(`/docs/${child.slug}`)}>
@@ -112,13 +110,15 @@
 		</section>
 	{/if}
 
-	<DocsPrevNext prev={data.adjacent.prev} next={data.adjacent.next} />
+	<div class="not-prose">
+		<DocsPrevNext prev={data.adjacent.prev} next={data.adjacent.next} />
+	</div>
 </DocsPageShell>
 
 <style>
 	:global(.docs-heading),
 	:global(.docs-prose h1),
 	:global(.docs-prose h2) {
-		scroll-margin-top: 6rem;
+		scroll-margin-top: 5rem;
 	}
 </style>

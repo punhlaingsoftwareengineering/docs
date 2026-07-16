@@ -5,29 +5,25 @@
 	let { items }: { items: CategoryListingItem[] } = $props();
 </script>
 
-{#snippet sectionTree(nodes: CategoryListingItem[], nested = false)}
-	<ul
-		class="menu menu-sm rounded-box border border-base-300 bg-base-100"
-		class:ml-4={nested}
-		class:mt-2={nested}
-		class:border-l-2={nested}
-		class:border-t-0={nested}
-		class:rounded-l-none={nested}
-	>
+{#snippet sectionTree(nodes: CategoryListingItem[])}
+	<div class="grid gap-3">
 		{#each nodes as node (node.slug)}
-			<li>
-				<a href={resolve(`/docs/${node.slug}`)}>
-					<span class="font-medium">{node.title}</span>
-					{#if node.excerpt}
-						<span class="text-xs text-base-content/60">{node.excerpt}</span>
-					{/if}
-				</a>
-				{#if node.children.length > 0}
-					{@render sectionTree(node.children, true)}
+			<a
+				href={resolve(`/docs/${node.slug}`)}
+				class="card flex flex-col rounded-box border border-base-200 bg-base-200/40 p-4 transition-colors hover:border-primary/30"
+			>
+				<span class="font-medium text-base-content">{node.title}</span>
+				{#if node.excerpt}
+					<span class="mt-1 text-sm text-base-content/70">{node.excerpt}</span>
 				{/if}
-			</li>
+			</a>
+			{#if node.children.length > 0}
+				<div class="ml-4 border-l-2 border-base-200 pl-4">
+					{@render sectionTree(node.children)}
+				</div>
+			{/if}
 		{/each}
-	</ul>
+	</div>
 {/snippet}
 
 {@render sectionTree(items)}

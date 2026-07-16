@@ -1,4 +1,5 @@
 import { fail, isRedirect, redirect } from '@sveltejs/kit';
+import { requireDocsAdmin } from '$lib/server/auth-guards';
 import { documentFormSchema } from '$lib/schemas/document';
 import { listCategories } from '$lib/server/services/categories';
 import {
@@ -29,8 +30,9 @@ export const load: PageServerLoad = async () => {
 };
 
 export const actions: Actions = {
-	default: async ({ request }) => {
-		const raw = Object.fromEntries(await request.formData());
+	default: async (event) => {
+		await requireDocsAdmin(event);
+		const raw = Object.fromEntries(await event.request.formData());
 		const parsed = documentFormSchema.safeParse(raw);
 
 		if (!parsed.success) {

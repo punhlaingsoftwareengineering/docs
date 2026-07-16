@@ -9,24 +9,32 @@
 
 <PageTitle title={data.category.name} appName={data.site.appName} />
 
-<DocsPageShell sidebarGroups={data.sidebarGroups} currentCategorySlug={data.category.slug}>
-	<nav aria-label="Breadcrumb" class="breadcrumbs text-sm text-base-content/70">
-		<ul>
-			<li><a href={resolve('/docs')}>Docs</a></li>
-			<li class="text-base-content">{data.category.name}</li>
-		</ul>
-	</nav>
+<DocsPageShell
+	appName={data.site.appName}
+	sidebarGroups={data.sidebarGroups}
+	currentCategorySlug={data.category.slug}
+>
+	{#snippet breadcrumbs()}
+		<nav aria-label="Breadcrumb" class="breadcrumbs text-sm">
+			<ul>
+				<li><a href={resolve('/docs')}>Docs</a></li>
+				<li><span class="font-medium">{data.category.name}</span></li>
+			</ul>
+		</nav>
+	{/snippet}
 
-	<header class="mb-8 border-b border-base-300 pb-6">
-		<h1 class="mt-4 text-3xl font-bold">{data.category.name}</h1>
-		{#if data.description}
-			<p class="mt-3 max-w-2xl text-base-content/70">{data.description}</p>
+	<div class="not-prose mx-auto max-w-4xl">
+		<header class="mb-10">
+			<h1 class="mb-3 text-3xl font-bold tracking-tight text-base-content">{data.category.name}</h1>
+			{#if data.description}
+				<p class="text-lg leading-relaxed text-base-content/70">{data.description}</p>
+			{/if}
+		</header>
+
+		{#if data.items.length === 0}
+			<p class="text-base-content/60">No published pages in this section yet.</p>
+		{:else}
+			<DocsSectionList items={data.items} />
 		{/if}
-	</header>
-
-	{#if data.items.length === 0}
-		<p class="text-base-content/60">No published pages in this section yet.</p>
-	{:else}
-		<DocsSectionList items={data.items} />
-	{/if}
+	</div>
 </DocsPageShell>

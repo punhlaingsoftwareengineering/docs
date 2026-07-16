@@ -7,9 +7,8 @@ import {
 	listChildDocuments
 } from '$lib/server/services/docs';
 import { DEFAULT_DOCUMENT_CONTENT_TYPE } from '$lib/constants/document-content';
-import { extractHeadings, renderMarkdown, sanitizeDocHtml } from '$lib/markdown';
-import { slugify } from '$lib/utils/slug';
-import { isAdminUser } from '$lib/server/users';
+import { renderMarkdown, sanitizeDocHtml } from '$lib/markdown';
+import { canPreviewUnpublishedDocs } from '$lib/server/users';
 import { parseCsv } from '$lib/utils/csv';
 import type { PageServerLoad } from './$types';
 
@@ -20,20 +19,20 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 		error(404, 'Documentation page not found');
 	}
 
-	const isAdmin = isAdminUser(locals.user);
-	const doc = await getDocumentBySlug(parsed.data.slug, { includeUnpublished: isAdmin });
+	const canPreview = await canPreviewUnpublishedDocs(locals.user?.id);
+	const doc = await getDocumentBySlug(parsed.data.slug, { includeUnpublished: canPreview });
 
 	if (!doc) {
 		error(404, 'Documentation page not found');
 	}
 
-	if (!doc.published && !isAdmin) {
+	if (!doc.published && !canPreview) {
 		error(404, 'Documentation page not found');
 	}
 
 	const [childRows, ancestors, adjacent] = await Promise.all([
-		listChildDocuments(doc.id, { includeUnpublished: isAdmin }),
-		getDocumentAncestors(parsed.data.slug, { includeUnpublished: isAdmin }),
+		listChildDocuments(doc.id, { includeUnpublished: canPreview }),
+		getDocumentAncestors(parsed.data.slug, { includeUnpublished: canPreview }),
 		getAdjacentDocuments(parsed.data.slug)
 	]);
 
@@ -63,26 +62,15 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 			? parseCsv(doc.content, { maxRows: 200, maxCols: 50 })
 			: null;
 
-	const headings =
-		contentType === 'markdown' || contentType === 'html' || contentType === 'csv' || hasContent
-			? [
-					{ id: slugify(doc.title), text: doc.title, level: 1 },
-					...(contentType === 'markdown' && hasContent
-						? extractHeadings(doc.content, { maxLevel: 2 })
-						: [])
-				]
-			: [{ id: slugify(doc.title), text: doc.title, level: 1 }];
-
 	return {
 		doc,
 		contentType,
 		hasChildren: childPages.length > 0,
-		isPreview: !doc.published && isAdmin,
+		isPreview: !doc.published && canPreview,
 		childPages,
 		ancestors,
 		adjacent,
 		html,
-		csv,
-		headings
+		csv
 	};
 };

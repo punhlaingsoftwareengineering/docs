@@ -8,7 +8,7 @@ alwaysApply: true
 - **Svelte 5** with runes mode (forced in `vite.config.ts` except `node_modules`)
 - **SvelteKit 2** (`@sveltejs/kit@next`, config in `vite.config.ts` via `sveltekit()` plugin)
 - **Tailwind CSS 4** + **daisyUI 5** (configure in `src/routes/layout.css`)
-- **Drizzle ORM** + Neon Postgres (`src/lib/server/db/`)
+- **Drizzle ORM** + Postgres via `pg` (`src/lib/server/db/`)
 - **Better Auth** (`src/lib/server/auth.ts`, `hooks.server.ts`)
 - **Zod** for runtime validation of forms, actions, and API input
 - **uuid** for client-facing IDs (prefer `crypto.randomUUID()` on server when possible)

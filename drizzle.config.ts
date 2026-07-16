@@ -1,11 +1,19 @@
+import 'dotenv/config';
 import { defineConfig } from 'drizzle-kit';
 
-if (!process.env.DATABASE_URL) throw new Error('DATABASE_URL is not set');
+const databaseUrl = process.env.DATABASE_URL?.trim();
+
+if (!databaseUrl) {
+	throw new Error(
+		'DATABASE_URL is not set. Copy .env.example to .env and set the CMS Postgres URL.'
+	);
+}
 
 export default defineConfig({
-	schema: './src/lib/server/db/schema.ts',
+	// CMS tables only — auth tables live in portal Postgres (AUTH_DATABASE_URL).
+	schema: './src/lib/server/db/cms.schema.ts',
 	dialect: 'postgresql',
-	dbCredentials: { url: process.env.DATABASE_URL },
+	dbCredentials: { url: databaseUrl },
 	verbose: true,
 	strict: true
 });

@@ -89,7 +89,7 @@ export const siteSettings = pgTable('site_settings', {
 	heroPrimaryCta: text('hero_primary_cta').notNull().default('Browse documentation'),
 	heroPrimaryUrl: text('hero_primary_url').notNull().default('/docs'),
 	heroSecondaryCta: text('hero_secondary_cta').notNull().default('Admin sign in'),
-	heroSecondaryUrl: text('hero_secondary_url').notNull().default('/login'),
+	heroSecondaryUrl: text('hero_secondary_url').notNull().default('/admin'),
 	heroSearchPlaceholder: text('hero_search_placeholder'),
 	techStackHeading: text('tech_stack_heading'),
 	techStackItems: jsonb('tech_stack_items').$type<string[]>(),

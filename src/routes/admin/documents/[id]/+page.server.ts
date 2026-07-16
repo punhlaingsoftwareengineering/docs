@@ -1,4 +1,5 @@
 import { error, fail, redirect } from '@sveltejs/kit';
+import { requireDocsAdmin } from '$lib/server/auth-guards';
 import { documentFormSchema, documentIdSchema } from '$lib/schemas/document';
 import { listCategories } from '$lib/server/services/categories';
 import {
@@ -60,11 +61,12 @@ export const load: PageServerLoad = async ({ params }) => {
 };
 
 export const actions: Actions = {
-	save: async ({ request, params }) => {
-		const idParsed = documentIdSchema.safeParse(params);
+	save: async (event) => {
+		await requireDocsAdmin(event);
+		const idParsed = documentIdSchema.safeParse(event.params);
 		if (!idParsed.success) return fail(400, { message: 'Invalid document' });
 
-		const raw = Object.fromEntries(await request.formData());
+		const raw = Object.fromEntries(await event.request.formData());
 		const parsed = documentFormSchema.safeParse(raw);
 
 		if (!parsed.success) {
@@ -98,8 +100,9 @@ export const actions: Actions = {
 		}
 	},
 
-	publish: async ({ params }) => {
-		const idParsed = documentIdSchema.safeParse(params);
+	publish: async (event) => {
+		await requireDocsAdmin(event);
+		const idParsed = documentIdSchema.safeParse(event.params);
 		if (!idParsed.success) return fail(400, { message: 'Invalid document' });
 
 		const doc = await getDocumentById(idParsed.data.id);
@@ -127,8 +130,9 @@ export const actions: Actions = {
 		};
 	},
 
-	delete: async ({ params }) => {
-		const idParsed = documentIdSchema.safeParse(params);
+	delete: async (event) => {
+		await requireDocsAdmin(event);
+		const idParsed = documentIdSchema.safeParse(event.params);
 		if (!idParsed.success) return fail(400, { message: 'Invalid document' });
 
 		await deleteDocument(idParsed.data.id);

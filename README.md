@@ -12,7 +12,8 @@ Personal software documentation site built with SvelteKit 2, Drizzle, and Better
 
 ```sh
 cp .env.example .env
-# Edit .env — set DATABASE_URL, ORIGIN, BETTER_AUTH_SECRET, GitHub OAuth vars
+# Edit .env — DATABASE_URL (CMS), AUTH_DATABASE_URL, PORTAL_DATABASE_URL,
+# ORIGIN, PORTAL_ORIGIN, AUTH_COOKIE_DOMAIN, BETTER_AUTH_SECRET (match portal)
 
 pnpm install
 pnpm run db:ensure
@@ -27,7 +28,9 @@ pnpm dev
 pnpm dev -- --open
 ```
 
-Dev, preview, and production all run on **port 1026** (`http://localhost:1026`).
+Dev, preview, and production all run on **port 1026**. For local SSO, browse **`http://docs.local.test`** (via employee-portal Caddy), not `localhost:1026`.
+
+Admin CRUD (`/admin`) requires employee-portal login and the **Documentation** service on your access role.
 
 ## Build and preview
 

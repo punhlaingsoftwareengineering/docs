@@ -1,10 +1,24 @@
-import { drizzle } from 'drizzle-orm/neon-http';
-import { neon } from '@neondatabase/serverless';
+import { DATABASE_URL as DATABASE_URL_ENV } from '$app/env/private';
+import { drizzle } from 'drizzle-orm/node-postgres';
+import pg from 'pg';
 import * as schema from './schema';
-import { DATABASE_URL } from '$app/env/private';
 
-if (!DATABASE_URL) throw new Error('DATABASE_URL is not set');
+function resolveDatabaseUrl(): string {
+	const fromEnv =
+		(typeof DATABASE_URL_ENV === 'string' && DATABASE_URL_ENV.trim()
+			? DATABASE_URL_ENV.trim()
+			: undefined) ??
+		(typeof process.env.DATABASE_URL === 'string' && process.env.DATABASE_URL.trim()
+			? process.env.DATABASE_URL.trim()
+			: undefined);
 
-const client = neon(DATABASE_URL);
+	if (!fromEnv) {
+		throw new Error('DATABASE_URL is not set');
+	}
 
-export const db = drizzle(client, { schema });
+	return fromEnv;
+}
+
+const pool = new pg.Pool({ connectionString: resolveDatabaseUrl() });
+
+export const db = drizzle(pool, { schema });

@@ -7,16 +7,12 @@ export const user = pgTable('user', {
 	email: text('email').notNull().unique(),
 	emailVerified: boolean('email_verified').default(false).notNull(),
 	image: text('image'),
+	developerModeEnabled: boolean('developer_mode_enabled').notNull().default(false),
 	createdAt: timestamp('created_at').defaultNow().notNull(),
 	updatedAt: timestamp('updated_at')
 		.defaultNow()
-		.$onUpdate(() => /* @__PURE__ */ new Date())
-		.notNull(),
-	role: text('role'),
-	banned: boolean('banned').default(false),
-	banReason: text('ban_reason'),
-	banExpires: timestamp('ban_expires'),
-	twoFactorEnabled: boolean('two_factor_enabled').default(false)
+		.$onUpdate(() => new Date())
+		.notNull()
 });
 
 export const session = pgTable(
@@ -27,14 +23,13 @@ export const session = pgTable(
 		token: text('token').notNull().unique(),
 		createdAt: timestamp('created_at').defaultNow().notNull(),
 		updatedAt: timestamp('updated_at')
-			.$onUpdate(() => /* @__PURE__ */ new Date())
+			.$onUpdate(() => new Date())
 			.notNull(),
 		ipAddress: text('ip_address'),
 		userAgent: text('user_agent'),
 		userId: text('user_id')
 			.notNull()
-			.references(() => user.id, { onDelete: 'cascade' }),
-		impersonatedBy: text('impersonated_by')
+			.references(() => user.id, { onDelete: 'cascade' })
 	},
 	(table) => [index('session_userId_idx').on(table.userId)]
 );
@@ -57,7 +52,7 @@ export const account = pgTable(
 		password: text('password'),
 		createdAt: timestamp('created_at').defaultNow().notNull(),
 		updatedAt: timestamp('updated_at')
-			.$onUpdate(() => /* @__PURE__ */ new Date())
+			.$onUpdate(() => new Date())
 			.notNull()
 	},
 	(table) => [index('account_userId_idx').on(table.userId)]
@@ -73,32 +68,15 @@ export const verification = pgTable(
 		createdAt: timestamp('created_at').defaultNow().notNull(),
 		updatedAt: timestamp('updated_at')
 			.defaultNow()
-			.$onUpdate(() => /* @__PURE__ */ new Date())
+			.$onUpdate(() => new Date())
 			.notNull()
 	},
 	(table) => [index('verification_identifier_idx').on(table.identifier)]
 );
 
-export const twoFactor = pgTable(
-	'two_factor',
-	{
-		id: text('id').primaryKey(),
-		secret: text('secret').notNull(),
-		backupCodes: text('backup_codes').notNull(),
-		userId: text('user_id')
-			.notNull()
-			.references(() => user.id, { onDelete: 'cascade' })
-	},
-	(table) => [
-		index('twoFactor_secret_idx').on(table.secret),
-		index('twoFactor_userId_idx').on(table.userId)
-	]
-);
-
 export const userRelations = relations(user, ({ many }) => ({
 	sessions: many(session),
-	accounts: many(account),
-	twoFactors: many(twoFactor)
+	accounts: many(account)
 }));
 
 export const sessionRelations = relations(session, ({ one }) => ({
@@ -111,13 +89,6 @@ export const sessionRelations = relations(session, ({ one }) => ({
 export const accountRelations = relations(account, ({ one }) => ({
 	user: one(user, {
 		fields: [account.userId],
-		references: [user.id]
-	})
-}));
-
-export const twoFactorRelations = relations(twoFactor, ({ one }) => ({
-	user: one(user, {
-		fields: [twoFactor.userId],
 		references: [user.id]
 	})
 }));

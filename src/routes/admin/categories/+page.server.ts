@@ -1,4 +1,5 @@
 import { fail } from '@sveltejs/kit';
+import { requireDocsAdmin } from '$lib/server/auth-guards';
 import { categoryFormSchema, categoryIdSchema } from '$lib/schemas/category';
 import {
 	categoryErrorMessage,
@@ -15,8 +16,9 @@ export const load: PageServerLoad = async () => {
 };
 
 export const actions: Actions = {
-	create: async ({ request }) => {
-		const raw = Object.fromEntries(await request.formData());
+	create: async (event) => {
+		await requireDocsAdmin(event);
+		const raw = Object.fromEntries(await event.request.formData());
 		const parsed = categoryFormSchema.safeParse(raw);
 
 		if (!parsed.success) {
@@ -42,8 +44,9 @@ export const actions: Actions = {
 		}
 	},
 
-	update: async ({ request }) => {
-		const formData = await request.formData();
+	update: async (event) => {
+		await requireDocsAdmin(event);
+		const formData = await event.request.formData();
 		const raw = Object.fromEntries(formData);
 		const idParsed = categoryIdSchema.safeParse({ id: raw.id });
 
@@ -77,8 +80,9 @@ export const actions: Actions = {
 		}
 	},
 
-	delete: async ({ request }) => {
-		const formData = await request.formData();
+	delete: async (event) => {
+		await requireDocsAdmin(event);
+		const formData = await event.request.formData();
 		const parsed = categoryIdSchema.safeParse({ id: formData.get('id') });
 
 		if (!parsed.success) {

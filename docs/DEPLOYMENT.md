@@ -2,11 +2,14 @@
 
 The app runs on **port 1026** everywhere (dev, preview, production) via `@sveltejs/adapter-node` and Vite.
 
+Authentication uses **employee-portal SSO** (same model as PHH-DRIVE). See [employee-portal/docs/shared-auth-sso.md](../../employee-portal/docs/shared-auth-sso.md) for the full env contract.
+
 ## Quick start (Docker)
 
 ```sh
 cp .env.example .env
-# Set DATABASE_URL, ORIGIN, BETTER_AUTH_SECRET, GITHUB_* vars
+# Set DATABASE_URL (CMS), AUTH_DATABASE_URL, PORTAL_DATABASE_URL, ORIGIN, PORTAL_ORIGIN,
+# AUTH_COOKIE_DOMAIN, BETTER_AUTH_SECRET (same as portal)
 
 docker compose up -d --build
 ```
@@ -20,135 +23,122 @@ docker run -d --name docs -p 1026:1026 --env-file .env docs
 
 ## Required environment variables
 
-| Variable               | Required | Purpose                                      |
-| ---------------------- | -------- | -------------------------------------------- |
-| `DATABASE_URL`         | Yes      | Postgres connection string                   |
-| `ORIGIN`               | Yes      | Public URL for Better Auth OAuth and CSRF    |
-| `BETTER_AUTH_SECRET`   | Yes      | Auth token signing (32+ chars in production) |
-| `GITHUB_CLIENT_ID`     | Yes      | GitHub OAuth                                 |
-| `GITHUB_CLIENT_SECRET` | Yes      | GitHub OAuth                                 |
-| `PORT`                 | No       | Default `1026`                               |
-| `HOST`                 | No       | Default `0.0.0.0`                            |
-| `PUBLIC_APP_NAME`      | No       | Page titles and branding                     |
-| `SMTP_USER`            | No       | Gmail address for sending invitation emails  |
-| `SMTP_PASS`            | No       | Gmail App Password for `SMTP_USER`           |
-| `SMTP_HOST`            | No       | Default `smtp.gmail.com`                     |
-| `SMTP_PORT`            | No       | Default `587`                                |
-| `EMAIL_FROM`           | No       | From header; defaults to `SMTP_USER`         |
+| Variable | Required | Purpose |
+| -------- | -------- | ------- |
+| `DATABASE_URL` | Yes | Local Postgres for CMS (`document`, `category`, `site_settings`, …) |
+| `AUTH_DATABASE_URL` | Yes | Portal Postgres for shared auth tables |
+| `PORTAL_DATABASE_URL` | Yes* | Portal Postgres for permission checks (*defaults to `AUTH_DATABASE_URL`) |
+| `ORIGIN` | Yes | Public docs URL (e.g. `https://docs.example.com`) |
+| `PORTAL_ORIGIN` | Yes | Employee portal URL for login redirects |
+| `AUTH_COOKIE_DOMAIN` | Yes (SSO) | Shared cookie domain (e.g. `.phh.com`, `.local.test`) |
+| `BETTER_AUTH_SECRET` | Yes | Must match portal and drive |
+| `AUTH_SESSION_EXPIRES_IN` | No | Default `7d` — keep in sync with portal |
+| `AUTH_SESSION_UPDATE_AGE` | No | Default `30m` |
+| `AUTH_SESSION_COOKIE_CACHE_MAX_AGE` | No | Default `30m` |
+| `PORT` | No | Default `1026` |
+| `HOST` | No | Default `0.0.0.0` |
+| `PUBLIC_APP_NAME` | No | Page titles and branding |
+
+## Local dev with portal SSO
+
+Use **employee-portal Caddy** — browse `http://docs.local.test`, not `localhost:1026`.
+
+1. In **employee-portal** `.env`: `DOCS_ORIGIN=http://docs.local.test`, `CADDY_DOCS_UPSTREAM=localhost:1026`
+2. Run hosts script (Administrator PowerShell): `employee-portal/scripts/setup-local-sso-hosts.ps1`
+3. Four terminals:
+
+   ```powershell
+   cd employee-portal && pnpm dev      # 1027
+   cd drive && pnpm dev                # 1025 (optional)
+   cd docs && pnpm dev                 # 1026
+   cd employee-portal && pnpm caddy:dev
+   ```
+
+4. In **docs** `.env` (see `.env.example`):
+
+   ```env
+   ORIGIN=http://docs.local.test
+   PORTAL_ORIGIN=http://portal.local.test
+   AUTH_COOKIE_DOMAIN=.local.test
+   BETTER_AUTH_SECRET=<same as portal>
+   AUTH_DATABASE_URL=<portal postgres>
+   PORTAL_DATABASE_URL=<portal postgres>
+   DATABASE_URL=postgres://...@localhost:5432/docs
+   ```
+
+5. Portal **Settings → Access roles** — assign **Docs** service to your role
+6. Sign in at `portal.local.test`, then open `docs.local.test/admin`
 
 ## Access modes
 
 ### Mode A — Direct access
 
-Use when users reach the app directly (LAN IP, cloud VM public IP, `docker run -p 1026:1026`).
-
 ```env
 PORT=1026
 HOST=0.0.0.0
 ORIGIN=http://192.168.1.50:1026
+PORTAL_ORIGIN=http://portal.example.com:1027
+AUTH_COOKIE_DOMAIN=.example.com
 ```
 
-`ORIGIN` must **exactly** match what appears in the browser address bar, including scheme and port.
-
-### Dev with `pnpm dev --host`
-
-Email and password sign-in work from both `http://localhost:1026` and a LAN IP (e.g. `http://192.168.1.50:1026`).
-
-**GitHub OAuth** registers a single callback URL (`${ORIGIN}/api/auth/callback/github`). For local dev, keep `ORIGIN=http://localhost:1026` and use GitHub sign-in from localhost. When testing from a LAN IP, use email sign-in, or temporarily set `ORIGIN` to the LAN URL and update the GitHub OAuth callback to match.
+`ORIGIN` must **exactly** match what appears in the browser address bar.
 
 ### Mode B — Behind reverse proxy
 
-Use when TLS terminates at nginx, Caddy, or Traefik. The proxy forwards to the container on port 1026.
-
 ```env
-PORT=1026
-HOST=0.0.0.0
 ORIGIN=https://docs.example.com
+PORTAL_ORIGIN=https://phh.com
+AUTH_COOKIE_DOMAIN=.phh.com
 PROTOCOL_HEADER=x-forwarded-proto
 HOST_HEADER=x-forwarded-host
 PORT_HEADER=x-forwarded-port
 ```
 
-- `ORIGIN` is the canonical public URL (required for GitHub OAuth callback registration).
-- CSRF checks use forwarded headers to match the browser `Origin` header.
-- Only enable `PROTOCOL_HEADER` / `HOST_HEADER` when the proxy is trusted (not exposed directly to the internet without a proxy).
+For local SSO, employee-portal owns Caddy (`Caddyfile.generated` from `.env`).
 
-## Reverse proxy examples
+## CMS database
 
-### Caddy
+Auth tables live in **portal Postgres** — do not run auth migrations against `DATABASE_URL`.
 
-```caddy
-docs.example.com {
-	reverse_proxy localhost:1026
-}
+```sh
+pnpm run db:push   # CMS tables on DATABASE_URL only
 ```
 
-Caddy sets `X-Forwarded-Proto` and `X-Forwarded-Host` automatically.
+## Granting admin access
 
-### nginx
+Docs does not manage users. In employee-portal:
 
-```nginx
-server {
-	listen 443 ssl;
-	server_name docs.example.com;
-
-	location / {
-		proxy_pass http://127.0.0.1:1026;
-		proxy_set_header Host $host;
-		proxy_set_header X-Forwarded-Proto $scheme;
-		proxy_set_header X-Forwarded-Host $host;
-		proxy_set_header X-Forwarded-Port $server_port;
-	}
-}
-```
-
-## GitHub OAuth setup
-
-1. Create a GitHub OAuth App at https://github.com/settings/developers
-2. Set **Authorization callback URL** to: `${ORIGIN}/api/auth/callback/github`
-   - Direct: `http://192.168.1.50:1026/api/auth/callback/github`
-   - Proxy: `https://docs.example.com/api/auth/callback/github`
-3. Copy Client ID and Client Secret into `.env`
+1. Ensure `DOCS_ORIGIN` is set (registers Docs service tile)
+2. **Settings → Access roles** — add **Docs** service to the appropriate role(s)
+3. Portal admins always have access
 
 ## Local production test (without Docker)
 
 ```sh
 pnpm build
-PORT=1026 HOST=0.0.0.0 ORIGIN=http://localhost:1026 pnpm start
+PORT=1026 HOST=0.0.0.0 ORIGIN=http://docs.local.test pnpm start
 ```
 
 ## Troubleshooting
 
-### "Cross-site POST form submissions are forbidden"
+### Redirect loop or no session
 
-SvelteKit CSRF protection blocks form POSTs when the server cannot determine the correct origin.
+- `BETTER_AUTH_SECRET` and `AUTH_COOKIE_DOMAIN` must match portal
+- Browse via `ORIGIN` hostname (e.g. `docs.local.test`), not raw port
+- `ORIGIN` must match the browser URL exactly
 
-| Cause                        | Fix                                                                               |
-| ---------------------------- | --------------------------------------------------------------------------------- |
-| `ORIGIN` not set             | Set `ORIGIN` to the exact browser URL                                             |
-| Wrong scheme                 | `https://` in browser requires `ORIGIN=https://...` or `x-forwarded-proto: https` |
-| Wrong port                   | Include port in `ORIGIN` when not using 80/443 (e.g. `:1026`)                     |
-| Proxy not forwarding headers | Set `PROTOCOL_HEADER` / `HOST_HEADER` and configure proxy                         |
-| LAN IP changed               | Update `ORIGIN` and GitHub OAuth callback URL                                     |
+### 403 on `/admin`
 
-### Better Auth OAuth redirect mismatch
-
-GitHub callback URL in the OAuth app must exactly match `${ORIGIN}/api/auth/callback/github`.
+- User is signed in but lacks Docs service on their portal access role
 
 ### Database connection errors
 
-Ensure `DATABASE_URL` is reachable from the container/host. For Neon, use the pooled connection string.
+- `DATABASE_URL` — CMS only
+- `AUTH_DATABASE_URL` / `PORTAL_DATABASE_URL` — must reach portal Postgres
 
-## Admin invitations
+### "Cross-site POST form submissions are forbidden"
 
-1. Enable [2-Step Verification](https://myaccount.google.com/security) on your Google account.
-2. Create an [App Password](https://myaccount.google.com/apppasswords) for Mail.
-3. Set `SMTP_USER` and `SMTP_PASS` in `.env` (optional `EMAIL_FROM` for display name).
-4. Sign in as admin → **Users** → invite by email.
-5. Invitee opens `/invite/[token]` and creates an account (email or GitHub).
-6. Without SMTP configured, copy the invite link from the success message after inviting.
-
-Existing deployments: run `pnpm run db:push` (or `pnpm run db:ensure`) after upgrading to add `admin_invitation` and `user.role` columns. Existing users are migrated to `role = 'admin'`. Scripts load `.env` automatically via `dotenv`.
+Set `ORIGIN` correctly; behind a proxy, configure `PROTOCOL_HEADER` / `HOST_HEADER`.
 
 ## Build locally
 
@@ -158,5 +148,3 @@ pnpm build
 ```
 
 Build uses `.env.test` for placeholder env vars during Docker compilation. Runtime secrets come from your real `.env` or container environment.
-
-The Docker image runs `pnpm build` during the build stage and serves `build/index.js` with Node at runtime.

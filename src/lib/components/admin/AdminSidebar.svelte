@@ -6,12 +6,10 @@
 		FolderTree,
 		LayoutDashboard,
 		LogOut,
-		Settings,
-		Users
+		Settings
 	} from '@lucide/svelte';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
-	import { authClient } from '$lib/auth-client';
 
 	let {
 		user,
@@ -24,7 +22,6 @@
 		{ href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
 		{ href: '/admin/documents', label: 'Documents', icon: FileText },
 		{ href: '/admin/categories', label: 'Categories', icon: FolderTree },
-		{ href: '/admin/users', label: 'Users', icon: Users },
 		{ href: '/admin/settings', label: 'Settings', icon: Settings }
 	] as const;
 
@@ -38,7 +35,7 @@
 		if (signingOut) return;
 		signingOut = true;
 		onnavigate?.();
-		await authClient.signOut();
+		await fetch(resolve('/api/auth/logout'), { method: 'POST', credentials: 'include' });
 		await goto(resolve('/'));
 	}
 </script>

@@ -1,5 +1,6 @@
 import { asc, eq, sql } from 'drizzle-orm';
 import { db } from '$lib/server/db';
+import { safeDbQuery } from '$lib/server/db/safe-query';
 import { category, document } from '$lib/server/db/schema';
 import type { CategoryListingItem } from '$lib/types/docs-tree';
 import type { LandingCategorySection } from '$lib/types/landing';
@@ -12,7 +13,7 @@ import { slugify } from '$lib/utils/slug';
 import { buildCategoryListingTree, listDocumentsForTree } from '$lib/server/services/docs';
 
 export async function listCategories() {
-	return db.select().from(category).orderBy(asc(category.sortOrder));
+	return safeDbQuery('listCategories', () => db.select().from(category).orderBy(asc(category.sortOrder)), []);
 }
 
 export async function listLandingCategorySections(
@@ -81,28 +82,45 @@ export async function getCategoryListingBySlug(slug: string): Promise<{
 }
 
 export async function listCategoriesWithCounts() {
-	return db
-		.select({
-			id: category.id,
-			name: category.name,
-			slug: category.slug,
-			sortOrder: category.sortOrder,
-			documentCount: sql<number>`count(${document.id})::int`
-		})
-		.from(category)
-		.leftJoin(document, eq(document.categoryId, category.id))
-		.groupBy(category.id)
-		.orderBy(asc(category.sortOrder));
+	return safeDbQuery(
+		'listCategoriesWithCounts',
+		() =>
+			db
+				.select({
+					id: category.id,
+					name: category.name,
+					slug: category.slug,
+					sortOrder: category.sortOrder,
+					documentCount: sql<number>`count(${document.id})::int`
+				})
+				.from(category)
+				.leftJoin(document, eq(document.categoryId, category.id))
+				.groupBy(category.id)
+				.orderBy(asc(category.sortOrder)),
+		[]
+	);
 }
 
 export async function getCategoryById(id: string) {
-	const [row] = await db.select().from(category).where(eq(category.id, id)).limit(1);
-	return row ?? null;
+	return safeDbQuery(
+		'getCategoryById',
+		async () => {
+			const [row] = await db.select().from(category).where(eq(category.id, id)).limit(1);
+			return row ?? null;
+		},
+		null
+	);
 }
 
 export async function getCategoryBySlug(slug: string) {
-	const [row] = await db.select().from(category).where(eq(category.slug, slug)).limit(1);
-	return row ?? null;
+	return safeDbQuery(
+		'getCategoryBySlug',
+		async () => {
+			const [row] = await db.select().from(category).where(eq(category.slug, slug)).limit(1);
+			return row ?? null;
+		},
+		null
+	);
 }
 
 export async function createCategory(data: { name: string; slug?: string; sortOrder?: number }) {

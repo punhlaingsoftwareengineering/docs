@@ -10,37 +10,23 @@
 	let {
 		siteTitle = APP_NAME,
 		siteIconHref = null,
-		hasAdmin = false,
-		isSignedIn = false,
-		isAdmin = false,
+		canAccessAdmin = false,
 		navLinksEnabled = false,
 		navLinks = []
 	}: {
 		siteTitle?: string;
 		siteIconHref?: string | null;
-		hasAdmin?: boolean;
-		isSignedIn?: boolean;
-		isAdmin?: boolean;
+		canAccessAdmin?: boolean;
 		navLinksEnabled?: boolean;
 		navLinks?: NavLink[];
 	} = $props();
 
-	const onLoginPage = $derived(page.url.pathname === '/login');
-	const onAdminLoginPage = $derived(page.url.pathname.startsWith('/admin/login'));
-	const showSignIn = $derived(!isSignedIn && !onLoginPage && !onAdminLoginPage);
-	const showAdminAuthLink = $derived(!isSignedIn && !onLoginPage && !onAdminLoginPage);
-	const adminAuthLabel = $derived(hasAdmin ? 'Admin sign in' : 'Set up admin');
-	const showAdminLink = $derived(isAdmin);
 	const configuredNavLinks = $derived(navLinksEnabled ? navLinks : []);
-	const showBurger = $derived(
-		configuredNavLinks.length > 0 || showSignIn || showAdminAuthLink || showAdminLink
-	);
+	const showBurger = $derived(configuredNavLinks.length > 0 || canAccessAdmin);
 
 	const burgerLinks = $derived.by(() => {
 		const links: NavLink[] = [...configuredNavLinks];
-		if (showSignIn) links.push({ label: 'Sign in', url: '/login' });
-		if (showAdminAuthLink) links.push({ label: adminAuthLabel, url: '/admin/login' });
-		if (showAdminLink) links.push({ label: 'Admin', url: '/admin' });
+		if (canAccessAdmin) links.push({ label: 'Admin', url: '/admin' });
 		return links;
 	});
 
@@ -50,8 +36,6 @@
 
 	function linkHref(url: string) {
 		if (isExternal(url)) return url;
-		if (url === '/login') return resolve('/login');
-		if (url === '/admin/login') return resolve('/admin/login');
 		if (url === '/admin') return resolve('/admin');
 		if (url === '/') return resolve('/');
 		return url;
@@ -119,15 +103,7 @@
 	<div class="navbar-end gap-1">
 		<SearchTrigger compact />
 		<ThemeToggle />
-		{#if showSignIn}
-			<a href={resolve('/login')} class="btn btn-primary btn-sm hidden sm:inline-flex">Sign in</a>
-		{/if}
-		{#if showAdminAuthLink}
-			<a href={resolve('/admin/login')} class="btn btn-ghost btn-sm hidden sm:inline-flex"
-				>{adminAuthLabel}</a
-			>
-		{/if}
-		{#if showAdminLink}
+		{#if canAccessAdmin}
 			<a href={resolve('/admin')} class="btn btn-primary btn-sm hidden sm:inline-flex">Admin</a>
 		{/if}
 	</div>

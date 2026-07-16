@@ -1,5 +1,6 @@
 <script lang="ts">
 	import MarkdownEditor from '$lib/components/admin/MarkdownEditor.svelte';
+	import DriveMediaUrlField from '$lib/components/admin/DriveMediaUrlField.svelte';
 	import DocMediaViewer from '$lib/components/docs/DocMediaViewer.svelte';
 	import {
 		DEFAULT_DOCUMENT_CONTENT_TYPE,
@@ -9,6 +10,7 @@
 		type DocumentContentType
 	} from '$lib/constants/document-content';
 	import { renderMarkdown, sanitizeDocHtml } from '$lib/markdown';
+	import { mediaAcceptForContentType } from '$lib/utils/media-accept';
 	import { suggestContentTypeFromUrl, canUseOfficeOnlineEmbed } from '$lib/utils/media-url';
 
 	let {
@@ -39,10 +41,17 @@
 		contentType === 'office' && mediaUrl.trim() && !canUseOfficeOnlineEmbed(mediaUrl.trim())
 	);
 
+	const mediaAccept = $derived(mediaAcceptForContentType(contentType));
+
 	function handleMediaUrlBlur() {
 		if (!mediaUrl.trim()) return;
 		const suggested = suggestContentTypeFromUrl(mediaUrl);
 		if (suggested) contentType = suggested;
+	}
+
+	function applyDriveMediaUrl(url: string) {
+		mediaUrl = url;
+		handleMediaUrlBlur();
 	}
 </script>
 
@@ -78,23 +87,18 @@
 			<label class="label py-0" for="mediaUrl">
 				<span class="label-text font-medium">Media URL</span>
 			</label>
-			<input
-				id="mediaUrl"
-				name="mediaUrl"
-				type="text"
-				inputmode="url"
-				autocomplete="url"
-				class="input input-bordered w-full"
+			<DriveMediaUrlField
 				bind:value={mediaUrl}
-				onblur={handleMediaUrlBlur}
-				placeholder="http://10.100.100.67:1025/api/public/files/example"
+				accept={mediaAccept}
 				{disabled}
+				placeholder="http://10.100.100.67:1025/api/public/files/example"
+				onchange={handleMediaUrlBlur}
+				onUrlApplied={applyDriveMediaUrl}
 			/>
 			<p class="text-sm text-base-content/60">
-				Direct file link using <code class="text-xs">http://</code> or
-				<code class="text-xs">https://</code>
-				(LAN IPs, internal APIs, S3, CDN, etc.). Must be reachable from the visitor&apos;s browser; if
-				this site uses HTTPS, HTTP media may be blocked as mixed content.
+				Paste a direct link or upload to PHH-DRIVE (<code class="text-xs">portal/documentation</code>).
+				Uses <code class="text-xs">http://</code> or <code class="text-xs">https://</code> URLs reachable
+				from the visitor&apos;s browser.
 			</p>
 			{#if mediaUrlError}
 				<p class="text-sm text-error">{mediaUrlError}</p>

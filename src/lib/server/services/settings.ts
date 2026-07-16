@@ -1,11 +1,13 @@
 import { eq } from 'drizzle-orm';
 import { db } from '$lib/server/db';
+import { safeDbQuery } from '$lib/server/db/safe-query';
+import { defaultSiteSettings } from '$lib/server/defaults/site-settings';
 import { siteSettings } from '$lib/server/db/schema';
 import type { SettingsFormInput } from '$lib/schemas/settings';
 
 const DEFAULT_ID = 'default';
 
-export async function getSiteSettings() {
+async function fetchSiteSettings() {
 	const [row] = await db
 		.select()
 		.from(siteSettings)
@@ -19,7 +21,11 @@ export async function getSiteSettings() {
 		.from(siteSettings)
 		.where(eq(siteSettings.id, DEFAULT_ID))
 		.limit(1);
-	return created!;
+	return created ?? defaultSiteSettings();
+}
+
+export async function getSiteSettings() {
+	return safeDbQuery('getSiteSettings', fetchSiteSettings, defaultSiteSettings());
 }
 
 export async function updateSiteSettings(data: SettingsFormInput) {

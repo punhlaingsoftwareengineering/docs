@@ -15,12 +15,12 @@
 {#if prev || next}
 	<nav
 		aria-label="Document pagination"
-		class="mt-12 grid gap-4 border-t border-base-300 pt-8 sm:grid-cols-2"
+		class="mt-12 grid gap-4 border-t border-base-200 pt-8 sm:grid-cols-2"
 	>
 		{#if prev}
 			<a
 				href={resolve(`/docs/${prev.slug}`)}
-				class="rounded-box border border-base-300 p-4 transition-colors hover:border-primary hover:bg-base-200/40"
+				class="rounded-box border border-base-200 p-4 transition-colors hover:border-primary/40 hover:bg-base-200/40"
 			>
 				<span class="block text-xs text-base-content/60">Previous</span>
 				<span class="mt-1 flex items-center gap-1.5 font-medium">
@@ -34,7 +34,7 @@
 		{#if next}
 			<a
 				href={resolve(`/docs/${next.slug}`)}
-				class="rounded-box border border-base-300 p-4 text-right transition-colors hover:border-primary hover:bg-base-200/40 sm:col-start-2"
+				class="rounded-box border border-base-200 p-4 text-right transition-colors hover:border-primary/40 hover:bg-base-200/40 sm:col-start-2"
 			>
 				<span class="block text-xs text-base-content/60">Next</span>
 				<span class="mt-1 flex items-center justify-end gap-1.5 font-medium">

@@ -15,7 +15,7 @@
 	} = $props();
 </script>
 
-<nav aria-label="Breadcrumb" class="breadcrumbs text-sm text-base-content/70">
+<nav aria-label="Breadcrumb" class="breadcrumbs text-sm">
 	<ul>
 		<li><a href={resolve('/docs')}>Docs</a></li>
 		{#if categorySlug}
@@ -26,6 +26,6 @@
 		{#each ancestors as ancestor (ancestor.slug)}
 			<li><a href={resolve(`/docs/${ancestor.slug}`)}>{ancestor.title}</a></li>
 		{/each}
-		<li class="text-base-content">{currentTitle}</li>
+		<li><span class="font-medium">{currentTitle}</span></li>
 	</ul>
 </nav>

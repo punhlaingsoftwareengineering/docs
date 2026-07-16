@@ -5,9 +5,17 @@ import { defineConfig } from 'vitest/config';
 import { playwright } from '@vitest/browser-playwright';
 import adapter from '@sveltejs/adapter-node';
 import { sveltekit } from '@sveltejs/kit/vite';
+import { loadAppEnv, viteAllowedHosts } from './vite.allowed-hosts';
 
-export default defineConfig({
-	server: { port: 1026 },
+export default defineConfig(({ mode }) => {
+	const env = loadAppEnv(mode);
+
+	return {
+	server: {
+		port: 1026,
+		host: '0.0.0.0',
+		allowedHosts: viteAllowedHosts(env)
+	},
 	preview: { port: 1026 },
 	ssr: {
 		noExternal: ['@lucide/svelte']
@@ -66,4 +74,5 @@ export default defineConfig({
 			}
 		]
 	}
+};
 });

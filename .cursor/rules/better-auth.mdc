@@ -1,77 +1,61 @@
 ---
-description: Better Auth integration patterns for this SvelteKit app
-globs: "src/lib/server/auth.ts,src/hooks.server.ts,src/app.d.ts,src/routes/**/better-auth/**"
+description: Better Auth integration patterns for this SvelteKit app (portal SSO)
+globs: "src/lib/server/auth.ts,src/hooks.server.ts,src/app.d.ts,src/routes/auth/**"
 alwaysApply: false
 ---
 
-# Better Auth
+# Better Auth (portal SSO)
 
-Auth is configured in `src/lib/server/auth.ts` and wired in `src/hooks.server.ts`.
+Authentication is shared with **employee-portal** and **PHH-DRIVE**. Users sign in on the portal; docs reads the shared session cookie.
 
-## Server setup
+## Databases
+
+- `AUTH_DATABASE_URL` — portal Postgres (`user`, `session`, `account`, `verification`)
+- `PORTAL_DATABASE_URL` — portal Postgres (`user_profile`, `access_role`, `service`, …) for `/admin` permission checks
+- `DATABASE_URL` — local Postgres for CMS tables only
+
+## Server setup (`src/lib/server/auth.ts`)
 
 ```ts
 import { betterAuth } from 'better-auth/minimal';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { sveltekitCookies } from 'better-auth/svelte-kit';
-import { getRequestEvent } from '$app/server';
+import { authDb } from '$lib/server/db/auth-db';
+import { getAuthSessionOptions } from '$lib/server/auth-session-config';
 
 export const auth = betterAuth({
 	appName: PUBLIC_APP_NAME,
 	baseURL: ORIGIN,
 	secret: BETTER_AUTH_SECRET,
-	database: drizzleAdapter(db, { provider: 'pg' }),
-	plugins: [
-		twoFactor({ issuer: PUBLIC_APP_NAME }),
-		sveltekitCookies(getRequestEvent) // must be last
-	]
+	advanced: sessionAdvanced, // AUTH_COOKIE_DOMAIN, secure cookies
+	session: sessionOptions,     // AUTH_SESSION_* — must match portal
+	database: drizzleAdapter(authDb, { provider: 'pg', schema: { user, session, account, verification } }),
+	plugins: [sveltekitCookies(getRequestEvent)] // must be last
 });
 ```
 
-## Mandatory 2FA (admin only)
+No GitHub provider, no `admin` plugin, no `twoFactor` plugin.
 
-- `twoFactor` plugin — TOTP + backup codes; `user.twoFactorEnabled` on session user
-- Client: `twoFactorClient` in `src/lib/auth-client.ts` with `onTwoFactorRedirect` → `/login/two-factor`
-- Enrollment: `/admin/security/2fa` — set password (GitHub-only), scan QR, verify, save backup codes
-- Sign-in challenge: `/login/two-factor` after email or GitHub login when 2FA is enabled
-- `admin/+layout.server.ts` redirects to enrollment until `twoFactorEnabled`
-- OAuth 2FA gate: `src/lib/server/two-factor-oauth.ts` `after` hook on `/callback/*` (Better Auth only gates email sign-in by default)
-- Block `/two-factor/disable` in `hooks.before` — 2FA cannot be turned off
+## Hooks (`src/hooks.server.ts`)
 
-## Hooks
+- `getSession` with try/catch → set `locals.user` / `locals.session`; on failure set `locals.authUnavailable`
+- `auth.handler` for `/api/auth/*` (custom `/api/auth/logout` bypasses handler)
+- Do **not** write `role` or docs-specific fields to shared `user` table
 
-```ts
-import { svelteKitHandler } from 'better-auth/svelte-kit';
+## Admin access
 
-const session = await auth.api.getSession({ headers: event.request.headers });
-if (session) {
-	event.locals.user = session.user;
-	event.locals.session = session.session;
-}
-return svelteKitHandler({ event, resolve, auth, building });
-```
+- `canAccessDocsAdmin(userId)` in `$lib/server/portal-access.ts` — portal admin **or** access role with Docs service (`DOCS_SERVICE_ID`)
+- `requireDocsAdmin(event)` — no session → `portalLoginUrl(returnTo)`; no permission → 403
+- `assertDocsAdminApi(locals)` — API routes return 401/403
 
-## Invite-only admin access
+## Session expiry UX
 
-- `admin` plugin — `user.role` (`admin` / `user`); `requireAdmin()` in `$lib/server/auth-guards.ts`
-- Bootstrap: empty `user` table → first signup gets `role: 'admin'`
-- After bootstrap: `databaseHooks.user.create.before` allows signup only with valid pending invitation (email match or `invite_token` cookie)
-- Invitations: `admin_invitation` table + `/admin/users` UI; email via Gmail SMTP (`SMTP_USER`, `SMTP_PASS`) or copy-link fallback
-- Accept invite: `/invite/[token]` — email signup or GitHub with `requestSignUp`
-- `session.create.before` rejects non-admin sessions
-- Check `hasAdmin()`, `isBootstrap()`, `isAdminUser()` from `$lib/server/users`
+- `/auth/login` — “session expired” message + link to portal (`portalLoginUrl`)
+- `POST /api/auth/logout` — local sign-out, redirect to `/auth/login`
+- `fetchWithSession` / `redirectToLoginSessionExpired` in `$lib/client/fetch-session.ts`
 
-## Single admin bootstrap (login UI)
+## Env (must match portal)
 
-- GitHub OAuth is the primary sign-in method
-- `emailAndPassword` enabled for bootstrap and invite acceptance
-- `disableImplicitSignUp: true` on GitHub provider
-- **Bootstrap (`isBootstrap()`):** `/admin/login` shows **Create admin with GitHub** or **Create admin with email** (one time only)
-- **After bootstrap:** `/admin/login` is admin sign-in only; `/login` is user sign-in only
+`BETTER_AUTH_SECRET`, `AUTH_COOKIE_DOMAIN`, `AUTH_SESSION_EXPIRES_IN`, `AUTH_SESSION_UPDATE_AGE`, `AUTH_SESSION_COOKIE_CACHE_MAX_AGE`, `ORIGIN`, `PORTAL_ORIGIN`
 
-## Forms and actions
-
-- Use `auth.api.signInSocial` with `requestSignUp` when bootstrapping admin
-- Catch `APIError` from `better-auth/api` and return `fail(400, { message })`
-- Protect routes in `load` via `event.locals.user` + `redirect(302, '/login')`
-- Types: `User`, `Session` from `better-auth` in `app.d.ts` `Locals`
+See `employee-portal/docs/shared-auth-sso.md` and `docs/DEPLOYMENT.md`.

@@ -3,6 +3,7 @@
 	import { goto, invalidateAll } from '$app/navigation';
 	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
+	import { fetchWithSession } from '$lib/client/fetch-session';
 	import AdminHeader from '$lib/components/admin/AdminHeader.svelte';
 	import {
 		DOCUMENT_CONTENT_TYPE_LABELS,
@@ -48,7 +49,9 @@
 		deletingId = id;
 		errorMessage = null;
 
-		const response = await fetch(resolve(`/admin/api/documents/${id}`), { method: 'DELETE' });
+		const response = await fetchWithSession(resolve(`/admin/api/documents/${id}`), {
+			method: 'DELETE'
+		});
 
 		deletingId = null;
 

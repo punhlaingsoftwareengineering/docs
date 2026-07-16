@@ -1,5 +1,6 @@
 import { and, asc, desc, eq, ilike, isNull, or, sql } from 'drizzle-orm';
 import { db } from '$lib/server/db';
+import { safeDbQuery } from '$lib/server/db/safe-query';
 import { category, document, documentTag, tag } from '$lib/server/db/schema';
 import type {
 	CategoryListingItem,
@@ -88,29 +89,34 @@ export async function listDocuments(
 export async function searchPublishedDocuments(query: string) {
 	if (!query.trim()) return listPublishedDocuments();
 	const q = `%${query.trim()}%`;
-	return db
-		.select({
-			id: document.id,
-			slug: document.slug,
-			title: document.title,
-			excerpt: document.excerpt,
-			categoryName: category.name,
-			parentDocumentId: document.parentDocumentId
-		})
-		.from(document)
-		.innerJoin(category, eq(document.categoryId, category.id))
-		.where(
-			and(
-				eq(document.published, true),
-				or(
-					ilike(document.title, q),
-					ilike(document.content, q),
-					ilike(document.excerpt, q),
-					ilike(document.mediaUrl, q)
+	return safeDbQuery(
+		'searchPublishedDocuments',
+		() =>
+			db
+				.select({
+					id: document.id,
+					slug: document.slug,
+					title: document.title,
+					excerpt: document.excerpt,
+					categoryName: category.name,
+					parentDocumentId: document.parentDocumentId
+				})
+				.from(document)
+				.innerJoin(category, eq(document.categoryId, category.id))
+				.where(
+					and(
+						eq(document.published, true),
+						or(
+							ilike(document.title, q),
+							ilike(document.content, q),
+							ilike(document.excerpt, q),
+							ilike(document.mediaUrl, q)
+						)
+					)
 				)
-			)
-		)
-		.orderBy(asc(document.title));
+				.orderBy(asc(document.title)),
+		[]
+	);
 }
 
 export async function listPublishedDocuments() {
@@ -118,6 +124,13 @@ export async function listPublishedDocuments() {
 }
 
 export async function listDocumentsForTree(options?: {
+	categoryId?: string;
+	includeUnpublished?: boolean;
+}) {
+	return safeDbQuery('listDocumentsForTree', () => listDocumentsForTreeQuery(options), []);
+}
+
+async function listDocumentsForTreeQuery(options?: {
 	categoryId?: string;
 	includeUnpublished?: boolean;
 }) {
@@ -450,6 +463,17 @@ export async function listChildDocuments(
 	parentId: string,
 	options?: { includeUnpublished?: boolean }
 ) {
+	return safeDbQuery(
+		'listChildDocuments',
+		() => listChildDocumentsQuery(parentId, options),
+		[]
+	);
+}
+
+async function listChildDocumentsQuery(
+	parentId: string,
+	options?: { includeUnpublished?: boolean }
+) {
 	const conditions = [eq(document.parentDocumentId, parentId)];
 	if (!options?.includeUnpublished) conditions.push(eq(document.published, true));
 
@@ -468,13 +492,21 @@ export async function listChildDocuments(
 }
 
 export async function getDocumentById(id: string) {
+	return safeDbQuery('getDocumentById', () => getDocumentByIdQuery(id), null);
+}
+
+async function getDocumentByIdQuery(id: string) {
 	const [row] = await db.select().from(document).where(eq(document.id, id)).limit(1);
 	if (!row) return null;
-	const tags = await getTagsForDocument(id);
+	const tags = await getTagsForDocument(row.id);
 	return { ...row, tags };
 }
 
 export async function getDocumentBySlug(slug: string, options?: { includeUnpublished?: boolean }) {
+	return safeDbQuery('getDocumentBySlug', () => getDocumentBySlugQuery(slug, options), null);
+}
+
+async function getDocumentBySlugQuery(slug: string, options?: { includeUnpublished?: boolean }) {
 	const conditions = [eq(document.slug, slug)];
 	if (!options?.includeUnpublished) {
 		conditions.push(eq(document.published, true));
@@ -506,11 +538,16 @@ export async function getDocumentBySlug(slug: string, options?: { includeUnpubli
 }
 
 async function getTagsForDocument(documentId: string) {
-	return db
-		.select({ id: tag.id, name: tag.name, slug: tag.slug })
-		.from(documentTag)
-		.innerJoin(tag, eq(documentTag.tagId, tag.id))
-		.where(eq(documentTag.documentId, documentId));
+	return safeDbQuery(
+		'getTagsForDocument',
+		() =>
+			db
+				.select({ id: tag.id, name: tag.name, slug: tag.slug })
+				.from(documentTag)
+				.innerJoin(tag, eq(documentTag.tagId, tag.id))
+				.where(eq(documentTag.documentId, documentId)),
+		[]
+	);
 }
 
 async function syncDocumentTags(documentId: string, tagNames: string[]) {
@@ -602,7 +639,7 @@ export async function reorderSiblingDocuments(input: {
 		throw new Error('Documents must stay within the same parent and category.');
 	}
 
-	// neon-http driver does not support transactions; parallel updates are fine here.
+	// node-postgres driver: parallel updates used where transactions are not required.
 	await Promise.all(
 		orderedIds.map((id, index) =>
 			db.update(document).set({ sortOrder: index }).where(eq(document.id, id))

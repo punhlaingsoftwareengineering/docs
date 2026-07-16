@@ -11,7 +11,6 @@
 	const s = $derived(data.settings);
 	const landing = $derived(data.landing);
 	const auth = $derived(data.auth);
-	const showAdminAuth = $derived(!auth.isAdmin);
 </script>
 
 <PageTitle title={s.tagline} appName={data.site.appName} />
@@ -23,9 +22,7 @@
 <SiteNavbar
 	siteTitle={s.siteTitle}
 	siteIconHref={data.site.siteIconHref}
-	hasAdmin={auth.hasAdmin}
-	isSignedIn={auth.isSignedIn}
-	isAdmin={auth.isAdmin}
+	canAccessAdmin={auth.canAccessAdmin}
 	navLinksEnabled={data.site.navLinksEnabled}
 	navLinks={data.site.navLinks}
 />
@@ -37,10 +34,10 @@
 		heroSubtitle={s.heroSubtitle}
 		heroPrimaryCta={s.heroPrimaryCta}
 		heroPrimaryUrl={s.heroPrimaryUrl}
-		heroSecondaryCta={auth.isAdmin ? 'Admin' : auth.hasAdmin ? 'Sign in' : 'Set up admin'}
-		heroSecondaryUrl={auth.isAdmin ? '/admin' : auth.hasAdmin ? '/login' : '/admin/login'}
+		heroSecondaryCta={auth.canAccessAdmin ? 'Admin' : landing.cta.secondaryLabel}
+		heroSecondaryUrl={auth.canAccessAdmin ? '/admin' : landing.cta.secondaryUrl}
 		searchPlaceholder={landing.heroSearchPlaceholder}
-		showSecondaryCta={showAdminAuth}
+		showSecondaryCta={auth.canAccessAdmin}
 	/>
 	<TechStack heading={landing.techStack.heading} items={landing.techStack.items} />
 	<FeatureGrid
@@ -60,8 +57,8 @@
 		subtitle={landing.cta.subtitle}
 		primaryLabel={landing.cta.primaryLabel}
 		primaryUrl={landing.cta.primaryUrl}
-		secondaryLabel={auth.isAdmin ? 'Admin area' : landing.cta.secondaryLabel}
-		secondaryUrl={auth.isAdmin ? '/admin' : landing.cta.secondaryUrl}
-		showSecondaryCta={showAdminAuth}
+		secondaryLabel={auth.canAccessAdmin ? 'Admin area' : landing.cta.secondaryLabel}
+		secondaryUrl={auth.canAccessAdmin ? '/admin' : landing.cta.secondaryUrl}
+		showSecondaryCta={auth.canAccessAdmin}
 	/>
 </main>
