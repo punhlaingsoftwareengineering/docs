@@ -28,7 +28,7 @@ docker run -d --name docs -p 1026:1026 --env-file .env docs
 | `DATABASE_URL` | Yes | Local Postgres for CMS (`document`, `category`, `site_settings`, …) |
 | `AUTH_DATABASE_URL` | Yes | Portal Postgres for shared auth tables |
 | `PORTAL_DATABASE_URL` | Yes* | Portal Postgres for permission checks (*defaults to `AUTH_DATABASE_URL`) |
-| `ORIGIN` | Yes | Public docs URL (e.g. `https://docs.example.com`) |
+| `ORIGIN` | Yes | Public docs URL (e.g. `https://docs.phh.com`) |
 | `PORTAL_ORIGIN` | Yes | Employee portal URL for login redirects |
 | `AUTH_COOKIE_DOMAIN` | Yes (SSO) | Shared cookie domain (e.g. `.phh.com`, `.local.test`) |
 | `BETTER_AUTH_SECRET` | Yes | Must match portal and drive |
@@ -86,7 +86,7 @@ AUTH_COOKIE_DOMAIN=.example.com
 ### Mode B — Behind reverse proxy
 
 ```env
-ORIGIN=https://docs.example.com
+ORIGIN=https://docs.phh.com
 PORTAL_ORIGIN=https://phh.com
 AUTH_COOKIE_DOMAIN=.phh.com
 PROTOCOL_HEADER=x-forwarded-proto

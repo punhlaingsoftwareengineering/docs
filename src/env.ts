@@ -17,7 +17,7 @@ export const variables = defineEnvVars({
 	},
 	ORIGIN: {
 		description:
-			'Public docs URL (scheme + host + port), e.g. `http://docs.local.test` or `https://docs.example.com`. Required for Better Auth and CSRF.'
+			'Public docs URL (scheme + host + port), e.g. `http://docs.local.test` or `https://docs.phh.com`. Required for Better Auth and CSRF.'
 	},
 	PORTAL_ORIGIN: {
 		description:
@@ -47,7 +47,7 @@ export const variables = defineEnvVars({
 	},
 	DRIVE_ORIGIN: {
 		description:
-			'Public PHH-DRIVE URL for returned file links, e.g. `http://drive.office.phh.com` or `http://drive.local.test`.',
+			'Public PHH-DRIVE URL for returned file links, e.g. `http://drive.phh.com` or `http://drive.local.test`.',
 		schema: optionalString
 	},
 	DRIVE_INTERNAL_ORIGIN: {
