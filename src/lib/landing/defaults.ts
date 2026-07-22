@@ -1,4 +1,5 @@
 import type { LandingFeature } from '$lib/types/landing';
+import { slugify } from '$lib/utils/slug';
 
 export const DEFAULT_HERO_SEARCH_PLACEHOLDER = 'Search documentation…';
 
@@ -91,17 +92,27 @@ export const DEFAULT_DOCS_CATEGORY_DESCRIPTIONS: Record<string, string> = {
 
 export const LANDING_CATEGORY_DOC_LIMIT = 4;
 
-export function categoryBadgeForSlug(slug: string, name: string): string {
-	return DEFAULT_CATEGORY_BADGES[slug] ?? name.split(/\s+/)[0]?.slice(0, 12) ?? 'Docs';
+export function categoryBadgeForId(id: string, name: string): string {
+	const nameKey = slugify(name);
+	return (
+		DEFAULT_CATEGORY_BADGES[id] ??
+		DEFAULT_CATEGORY_BADGES[nameKey] ??
+		name.split(/\s+/)[0]?.slice(0, 12) ??
+		'Docs'
+	);
 }
 
-export function categoryDescriptionForSlug(
-	slug: string,
+export function categoryDescriptionForId(
+	id: string,
 	name: string,
 	descriptions: Record<string, string>
 ): string {
+	const nameKey = slugify(name);
 	return (
-		descriptions[slug] ?? `Browse ${name.toLowerCase()} documentation and guides.`
+		descriptions[id] ??
+		descriptions[nameKey] ??
+		DEFAULT_DOCS_CATEGORY_DESCRIPTIONS[nameKey] ??
+		`Browse ${name.toLowerCase()} documentation and guides.`
 	);
 }
 

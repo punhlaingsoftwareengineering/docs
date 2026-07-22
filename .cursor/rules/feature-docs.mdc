@@ -9,8 +9,8 @@ alwaysApply: false
 - Content from Postgres via `$lib/server/services/docs.ts`
 - Only `published` documents visible to anonymous visitors; admins see draft preview with banner
 - `/docs` redirects to the first category with published docs
-- `/docs/category/[slug]` lists all published docs in that category (nested tree)
-- `/docs/[slug]` renders markdown via `$lib/markdown.ts` (marked + DOMPurify) when `contentType` is `markdown`
-- Media pages (`contentType` ≠ `markdown`) embed the file at `mediaUrl` via `DocMediaViewer.svelte` (PDF via same-origin `/api/document-media/[slug]` proxy, video/audio players, image, Office Online for public HTTPS only); optional markdown notes render below the embed from `content`
-- Sidebar groups published docs by category in `+layout.server.ts`; category titles link to `/docs/category/[slug]`
-- `/docs/[slug]` shows a right TOC (page title + markdown H1/H2) at `lg+` via `DocsTableOfContents.svelte`
+- `/docs/category/[id]` lists all published docs in that category (nested tree)
+- `/docs/[id]` renders markdown via `$lib/markdown.ts` (marked + DOMPurify) when `contentType` is `markdown`
+- Media pages (`contentType` ≠ `markdown`) embed the file at `mediaUrl` via `DocMediaViewer.svelte` (PDF via same-origin `/api/document-media/[id]` proxy, video/audio players, image, Office Online for public HTTPS only); optional markdown notes render below the embed from `content`
+- Sidebar groups published docs by category in `+layout.server.ts`; category titles link to `/docs/category/[id]`
+- `/docs/[id]` shows a right TOC (page title + markdown H1/H2) at `lg+` via `DocsTableOfContents.svelte`

@@ -16,13 +16,13 @@
 <DocsPageShell
 	appName={data.site.appName}
 	sidebarGroups={data.sidebarGroups}
-	currentSlug={data.doc.slug}
-	currentCategorySlug={data.doc.categorySlug}
+	currentId={data.doc.id}
+	currentCategoryId={data.doc.categoryId}
 >
 	{#snippet breadcrumbs()}
 		<DocsBreadcrumbs
 			categoryName={data.doc.categoryName}
-			categorySlug={data.doc.categorySlug}
+			categoryId={data.doc.categoryId}
 			ancestors={data.ancestors}
 			currentTitle={data.doc.title}
 		/>
@@ -85,7 +85,7 @@
 			<DocMediaViewer
 				contentType={data.contentType}
 				mediaUrl={data.doc.mediaUrl}
-				embedSrc={data.contentType === 'pdf' ? resolve(`/api/document-media/${data.doc.slug}`) : null}
+				embedSrc={data.contentType === 'pdf' ? resolve(`/api/document-media/${data.doc.id}`) : null}
 				excerpt={data.doc.excerpt}
 				notesHtml={data.html}
 			/>
@@ -96,9 +96,9 @@
 		<section class="not-prose mt-10 border-t border-base-200 pt-8">
 			<h2 class="mb-4 text-lg font-semibold">In this section</h2>
 			<ul class="menu menu-sm rounded-box border border-base-200 bg-base-200/40">
-				{#each data.childPages as child (child.slug)}
+				{#each data.childPages as child (child.id)}
 					<li>
-						<a href={resolve(`/docs/${child.slug}`)}>
+						<a href={resolve(`/docs/${child.id}`)}>
 							<span class="font-medium">{child.title}</span>
 							{#if child.excerpt}
 								<span class="text-xs text-base-content/60">{child.excerpt}</span>

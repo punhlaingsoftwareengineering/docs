@@ -11,7 +11,6 @@ import type {
 	SidebarGroup
 } from '$lib/types/docs-tree';
 import { flattenCategoryDocumentsForOrder } from '$lib/utils/document-order';
-import { slugify } from '$lib/utils/slug';
 import { isMediaContentType } from '$lib/constants/document-content';
 
 export const MAX_DOCUMENT_DEPTH = 3;
@@ -20,19 +19,16 @@ export type DocumentListFilter = 'all' | 'draft' | 'published';
 
 export type DocumentTreeRow = {
 	id: string;
-	slug: string;
 	title: string;
 	parentDocumentId: string | null;
 	sortOrder: number;
 	categoryId: string;
 	categoryName: string;
-	categorySlug: string;
 	categorySort: number;
 };
 
 const documentListSelect = {
 	id: document.id,
-	slug: document.slug,
 	title: document.title,
 	excerpt: document.excerpt,
 	contentType: document.contentType,
@@ -42,7 +38,7 @@ const documentListSelect = {
 	parentDocumentId: document.parentDocumentId,
 	sortOrder: document.sortOrder,
 	categoryName: category.name,
-	categorySlug: category.slug
+	categoryId: document.categoryId
 };
 
 export async function listDocuments(
@@ -95,7 +91,6 @@ export async function searchPublishedDocuments(query: string) {
 			db
 				.select({
 					id: document.id,
-					slug: document.slug,
 					title: document.title,
 					excerpt: document.excerpt,
 					categoryName: category.name,
@@ -141,14 +136,12 @@ async function listDocumentsForTreeQuery(options?: {
 	return db
 		.select({
 			id: document.id,
-			slug: document.slug,
 			title: document.title,
 			excerpt: document.excerpt,
 			categoryId: document.categoryId,
 			parentDocumentId: document.parentDocumentId,
 			sortOrder: document.sortOrder,
 			categoryName: category.name,
-			categorySlug: category.slug,
 			categorySort: category.sortOrder
 		})
 		.from(document)
@@ -216,7 +209,7 @@ export function computeSubtreeMaxDepth(
 
 type CategoryListingRow = Pick<
 	DocumentTreeRow,
-	'id' | 'slug' | 'title' | 'parentDocumentId' | 'sortOrder'
+	'id' | 'title' | 'parentDocumentId' | 'sortOrder'
 > & { excerpt: string | null };
 
 export function buildCategoryListingTree(docs: CategoryListingRow[]): CategoryListingItem[] {
@@ -238,7 +231,7 @@ export function buildCategoryListingTree(docs: CategoryListingRow[]): CategoryLi
 			depth >= MAX_DOCUMENT_DEPTH
 				? []
 				: (childrenByParent.get(doc.id) ?? []).map((child) => toNode(child, depth + 1));
-		return { slug: doc.slug, title: doc.title, excerpt: doc.excerpt, children };
+		return { id: doc.id, title: doc.title, excerpt: doc.excerpt, children };
 	}
 
 	const roots = docs.filter((doc) => !doc.parentDocumentId);
@@ -247,7 +240,7 @@ export function buildCategoryListingTree(docs: CategoryListingRow[]): CategoryLi
 }
 
 export function buildDocumentTree(
-	docs: Pick<DocumentTreeRow, 'id' | 'slug' | 'title' | 'parentDocumentId' | 'sortOrder'>[]
+	docs: Pick<DocumentTreeRow, 'id' | 'title' | 'parentDocumentId' | 'sortOrder'>[]
 ): DocTreeNode[] {
 	const childrenByParent = new Map<string, typeof docs>();
 
@@ -267,7 +260,7 @@ export function buildDocumentTree(
 			depth >= MAX_DOCUMENT_DEPTH
 				? []
 				: (childrenByParent.get(doc.id) ?? []).map((child) => toNode(child, depth + 1));
-		return { slug: doc.slug, title: doc.title, children };
+		return { id: doc.id, title: doc.title, children };
 	}
 
 	const roots = docs.filter((doc) => !doc.parentDocumentId);
@@ -279,10 +272,10 @@ export function buildSidebarGroups(docs: DocumentTreeRow[]): SidebarGroup[] {
 	const groupMap = new Map<string, SidebarGroup>();
 
 	for (const doc of docs) {
-		if (!groupMap.has(doc.categorySlug)) {
-			groupMap.set(doc.categorySlug, {
+		if (!groupMap.has(doc.categoryId)) {
+			groupMap.set(doc.categoryId, {
 				name: doc.categoryName,
-				slug: doc.categorySlug,
+				id: doc.categoryId,
 				items: []
 			});
 		}
@@ -290,18 +283,18 @@ export function buildSidebarGroups(docs: DocumentTreeRow[]): SidebarGroup[] {
 
 	const byCategory = new Map<string, DocumentTreeRow[]>();
 	for (const doc of docs) {
-		const rows = byCategory.get(doc.categorySlug) ?? [];
+		const rows = byCategory.get(doc.categoryId) ?? [];
 		rows.push(doc);
-		byCategory.set(doc.categorySlug, rows);
+		byCategory.set(doc.categoryId, rows);
 	}
 
-	for (const [categorySlug, rows] of byCategory) {
-		groupMap.get(categorySlug)!.items = buildDocumentTree(rows);
+	for (const [categoryId, rows] of byCategory) {
+		groupMap.get(categoryId)!.items = buildDocumentTree(rows);
 	}
 
 	return [...groupMap.values()].sort((a, b) => {
-		const aSort = docs.find((d) => d.categorySlug === a.slug)?.categorySort ?? 0;
-		const bSort = docs.find((d) => d.categorySlug === b.slug)?.categorySort ?? 0;
+		const aSort = docs.find((d) => d.categoryId === a.id)?.categorySort ?? 0;
+		const bSort = docs.find((d) => d.categoryId === b.id)?.categorySort ?? 0;
 		return aSort - bSort || a.name.localeCompare(b.name);
 	});
 }
@@ -310,7 +303,7 @@ export function flattenSidebarGroups(groups: SidebarGroup[]): DocNavItem[] {
 	const items: DocNavItem[] = [];
 	function walk(nodes: DocTreeNode[]) {
 		for (const node of nodes) {
-			items.push({ slug: node.slug, title: node.title });
+			items.push({ id: node.id, title: node.title });
 			walk(node.children);
 		}
 	}
@@ -324,10 +317,10 @@ export async function getFirstPublishedDocument() {
 }
 
 export async function getDocumentAncestors(
-	slug: string,
+	id: string,
 	options?: { includeUnpublished?: boolean }
 ) {
-	const doc = await getDocumentBySlug(slug, { includeUnpublished: options?.includeUnpublished });
+	const doc = await getDocumentById(id, { includeUnpublished: options?.includeUnpublished });
 	if (!doc) return [];
 
 	const ancestors: DocNavItem[] = [];
@@ -336,18 +329,18 @@ export async function getDocumentAncestors(
 	while (parentId) {
 		const parent = await getDocumentById(parentId);
 		if (!parent) break;
-		ancestors.unshift({ slug: parent.slug, title: parent.title });
+		ancestors.unshift({ id: parent.id, title: parent.title });
 		parentId = parent.parentDocumentId;
 	}
 
 	return ancestors;
 }
 
-export async function getAdjacentDocuments(slug: string) {
+export async function getAdjacentDocuments(id: string) {
 	const docs = await listPublishedDocuments();
 	const groups = buildSidebarGroups(docs);
 	const flat = flattenSidebarGroups(groups);
-	const index = flat.findIndex((item) => item.slug === slug);
+	const index = flat.findIndex((item) => item.id === id);
 	if (index === -1) return { prev: null, next: null };
 	return {
 		prev: index > 0 ? flat[index - 1] : null,
@@ -448,7 +441,6 @@ export async function listParentDocuments(options?: {
 	return db
 		.select({
 			id: document.id,
-			slug: document.slug,
 			title: document.title,
 			categoryId: document.categoryId,
 			categoryName: category.name
@@ -480,7 +472,6 @@ async function listChildDocumentsQuery(
 	return db
 		.select({
 			id: document.id,
-			slug: document.slug,
 			title: document.title,
 			excerpt: document.excerpt,
 			sortOrder: document.sortOrder,
@@ -491,30 +482,20 @@ async function listChildDocumentsQuery(
 		.orderBy(asc(document.sortOrder), asc(document.title));
 }
 
-export async function getDocumentById(id: string) {
-	return safeDbQuery('getDocumentById', () => getDocumentByIdQuery(id), null);
+export async function getDocumentById(id: string, options?: { includeUnpublished?: boolean }) {
+	return safeDbQuery('getDocumentById', () => getDocumentByIdQuery(id, options), null);
 }
 
-async function getDocumentByIdQuery(id: string) {
-	const [row] = await db.select().from(document).where(eq(document.id, id)).limit(1);
-	if (!row) return null;
-	const tags = await getTagsForDocument(row.id);
-	return { ...row, tags };
-}
-
-export async function getDocumentBySlug(slug: string, options?: { includeUnpublished?: boolean }) {
-	return safeDbQuery('getDocumentBySlug', () => getDocumentBySlugQuery(slug, options), null);
-}
-
-async function getDocumentBySlugQuery(slug: string, options?: { includeUnpublished?: boolean }) {
-	const conditions = [eq(document.slug, slug)];
-	if (!options?.includeUnpublished) {
+async function getDocumentByIdQuery(id: string, options?: { includeUnpublished?: boolean }) {
+	const conditions = [eq(document.id, id)];
+	// Only filter when an options object is provided (public routes); admin calls omit options.
+	if (options && !options.includeUnpublished) {
 		conditions.push(eq(document.published, true));
 	}
+
 	const [row] = await db
 		.select({
 			id: document.id,
-			slug: document.slug,
 			title: document.title,
 			content: document.content,
 			contentType: document.contentType,
@@ -525,8 +506,7 @@ async function getDocumentBySlugQuery(slug: string, options?: { includeUnpublish
 			parentDocumentId: document.parentDocumentId,
 			sortOrder: document.sortOrder,
 			categoryId: document.categoryId,
-			categoryName: category.name,
-			categorySlug: category.slug
+			categoryName: category.name
 		})
 		.from(document)
 		.innerJoin(category, eq(document.categoryId, category.id))
@@ -542,7 +522,7 @@ async function getTagsForDocument(documentId: string) {
 		'getTagsForDocument',
 		() =>
 			db
-				.select({ id: tag.id, name: tag.name, slug: tag.slug })
+				.select({ id: tag.id, name: tag.name })
 				.from(documentTag)
 				.innerJoin(tag, eq(documentTag.tagId, tag.id))
 				.where(eq(documentTag.documentId, documentId)),
@@ -555,10 +535,9 @@ async function syncDocumentTags(documentId: string, tagNames: string[]) {
 
 	const unique = [...new Set(tagNames.map((t) => t.trim()).filter(Boolean))];
 	for (const name of unique) {
-		const tagSlug = slugify(name);
-		let [existing] = await db.select().from(tag).where(eq(tag.slug, tagSlug)).limit(1);
+		let [existing] = await db.select().from(tag).where(eq(tag.name, name)).limit(1);
 		if (!existing) {
-			[existing] = await db.insert(tag).values({ name, slug: tagSlug }).returning();
+			[existing] = await db.insert(tag).values({ name }).returning();
 		}
 		await db.insert(documentTag).values({ documentId, tagId: existing.id });
 	}
@@ -566,7 +545,6 @@ async function syncDocumentTags(documentId: string, tagNames: string[]) {
 
 type DocumentWriteData = {
 	title: string;
-	slug?: string;
 	contentType?: string;
 	mediaUrl?: string;
 	content?: string;
@@ -598,7 +576,6 @@ export async function listDocumentOrderGroups(): Promise<DocumentOrderGroup[]> {
 		db
 			.select({
 				id: document.id,
-				slug: document.slug,
 				title: document.title,
 				published: document.published,
 				categoryId: document.categoryId,
@@ -654,7 +631,6 @@ export async function createDocument(data: DocumentWriteData) {
 	});
 	if (!hierarchy.valid) throw new Error(hierarchy.message);
 
-	const slug = data.slug?.trim() || slugify(data.title);
 	const sortOrder = await nextSiblingSortOrder(data.categoryId, data.parentDocumentId ?? null);
 	const contentType = data.contentType ?? 'markdown';
 	const mediaUrl = isMediaContentType(contentType) ? data.mediaUrl?.trim() || null : null;
@@ -662,7 +638,6 @@ export async function createDocument(data: DocumentWriteData) {
 		.insert(document)
 		.values({
 			title: data.title,
-			slug,
 			content: data.content ?? '',
 			contentType,
 			mediaUrl,
@@ -692,7 +667,6 @@ export async function updateDocument(id: string, data: DocumentWriteData & { con
 	});
 	if (!hierarchy.valid) throw new Error(hierarchy.message);
 
-	const slug = data.slug?.trim() || slugify(data.title);
 	const contentType = data.contentType ?? 'markdown';
 	const mediaUrl = isMediaContentType(contentType) ? data.mediaUrl?.trim() || null : null;
 	const [existing] = await db
@@ -705,7 +679,6 @@ export async function updateDocument(id: string, data: DocumentWriteData & { con
 		.update(document)
 		.set({
 			title: data.title,
-			slug,
 			content: data.content,
 			contentType,
 			mediaUrl,
@@ -756,7 +729,6 @@ export async function getRecentDocuments(limit = 5) {
 		.select({
 			id: document.id,
 			title: document.title,
-			slug: document.slug,
 			published: document.published,
 			updatedAt: document.updatedAt
 		})

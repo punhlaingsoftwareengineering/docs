@@ -1,9 +1,9 @@
 import { error } from '@sveltejs/kit';
-import { docSlugSchema } from '$lib/schemas/document';
+import { documentIdSchema } from '$lib/schemas/document';
 import {
 	getAdjacentDocuments,
 	getDocumentAncestors,
-	getDocumentBySlug,
+	getDocumentById,
 	listChildDocuments
 } from '$lib/server/services/docs';
 import { DEFAULT_DOCUMENT_CONTENT_TYPE } from '$lib/constants/document-content';
@@ -13,14 +13,14 @@ import { parseCsv } from '$lib/utils/csv';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ params, locals }) => {
-	const parsed = docSlugSchema.safeParse(params);
+	const parsed = documentIdSchema.safeParse(params);
 
 	if (!parsed.success) {
 		error(404, 'Documentation page not found');
 	}
 
 	const canPreview = await canPreviewUnpublishedDocs(locals.user?.id);
-	const doc = await getDocumentBySlug(parsed.data.slug, { includeUnpublished: canPreview });
+	const doc = await getDocumentById(parsed.data.id, { includeUnpublished: canPreview });
 
 	if (!doc) {
 		error(404, 'Documentation page not found');
@@ -32,12 +32,12 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 
 	const [childRows, ancestors, adjacent] = await Promise.all([
 		listChildDocuments(doc.id, { includeUnpublished: canPreview }),
-		getDocumentAncestors(parsed.data.slug, { includeUnpublished: canPreview }),
-		getAdjacentDocuments(parsed.data.slug)
+		getDocumentAncestors(parsed.data.id, { includeUnpublished: canPreview }),
+		getAdjacentDocuments(parsed.data.id)
 	]);
 
 	const childPages = childRows.map((child) => ({
-		slug: child.slug,
+		id: child.id,
 		title: child.title,
 		excerpt: child.excerpt
 	}));

@@ -15,7 +15,6 @@ export const GET: RequestHandler = async ({ url }) => {
 	return json({
 		results: results.map((doc) => ({
 			id: doc.id,
-			slug: doc.slug,
 			title: doc.title,
 			excerpt: doc.excerpt,
 			categoryName: doc.categoryName

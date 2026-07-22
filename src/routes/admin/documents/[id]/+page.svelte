@@ -26,7 +26,6 @@
 	let contentType = $state<DocumentContentType>(DEFAULT_DOCUMENT_CONTENT_TYPE);
 	let mediaUrl = $state('');
 	let title = $state('');
-	let slug = $state('');
 	let excerpt = $state('');
 	let tags = $state('');
 	let categoryId = $state('');
@@ -38,7 +37,6 @@
 		const values = form?.values;
 		if (values) {
 			title = (values.title as string) ?? title;
-			slug = (values.slug as string) ?? slug;
 			excerpt = (values.excerpt as string) ?? excerpt;
 			tags = (values.tags as string) ?? tags;
 			content = (values.content as string) ?? content;
@@ -54,7 +52,6 @@
 			contentType = (data.doc.contentType as DocumentContentType) ?? DEFAULT_DOCUMENT_CONTENT_TYPE;
 			mediaUrl = data.doc.mediaUrl ?? '';
 			title = data.doc.title;
-			slug = data.doc.slug;
 			excerpt = data.doc.excerpt ?? '';
 			tags = data.doc.tags;
 			categoryId = data.doc.categoryId;
@@ -82,7 +79,7 @@
 	<div class="flex flex-wrap items-center gap-2">
 		{#if data.doc.published}
 			<span class="badge badge-success">Published</span>
-			<a href={resolve(`/docs/${data.doc.slug}`)} class="btn btn-ghost btn-xs" target="_blank"
+			<a href={resolve(`/docs/${data.doc.id}`)} class="btn btn-ghost btn-xs" target="_blank"
 				>View public</a
 			>
 		{:else}
@@ -113,7 +110,7 @@
 					<td class="align-middle p-0">
 						<label class="label py-0" for="title"><span class="label-text">Title</span></label>
 					</td>
-					<td class="min-w-0 p-0">
+					<td class="min-w-0 p-0" colspan="3">
 						<input
 							id="title"
 							name="title"
@@ -124,12 +121,6 @@
 						{#if form?.errors && 'title' in form.errors && form.errors.title}
 							<p class="mt-1 text-sm text-error">{form.errors.title[0]}</p>
 						{/if}
-					</td>
-					<td class="align-middle p-0">
-						<label class="label py-0" for="slug"><span class="label-text">Slug</span></label>
-					</td>
-					<td class="min-w-0 p-0">
-						<input id="slug" name="slug" class="input input-bordered w-full" bind:value={slug} />
 					</td>
 				</tr>
 				<tr>
@@ -210,7 +201,7 @@
 				bind:content
 				bind:contentType
 				bind:mediaUrl
-				pdfEmbedSrc={resolve(`/api/document-media/${data.doc.slug}`)}
+				pdfEmbedSrc={resolve(`/api/document-media/${data.doc.id}`)}
 				{excerpt}
 				mediaUrlError={form?.errors?.mediaUrl?.[0]}
 			/>

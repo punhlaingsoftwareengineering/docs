@@ -62,11 +62,7 @@ export const actions: Actions = {
 		} catch (error) {
 			if (isRedirect(error)) throw error;
 			const message =
-				error instanceof Error && 'code' in error && error.code === '23505'
-					? 'A document with this slug already exists.'
-					: error instanceof Error
-						? error.message
-						: 'Could not create document.';
+				error instanceof Error ? error.message : 'Could not create document.';
 			return fail(400, { message, values: raw });
 		}
 	}

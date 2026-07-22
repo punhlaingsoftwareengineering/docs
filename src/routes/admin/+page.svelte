@@ -43,7 +43,6 @@
 				<thead>
 					<tr>
 						<th>Name</th>
-						<th>Slug</th>
 						<th>Documents</th>
 					</tr>
 				</thead>
@@ -51,7 +50,6 @@
 					{#each data.categories as cat (cat.id)}
 						<tr>
 							<td class="font-medium">{cat.name}</td>
-							<td class="font-mono text-sm text-base-content/70">{cat.slug}</td>
 							<td>{cat.documentCount}</td>
 						</tr>
 					{/each}

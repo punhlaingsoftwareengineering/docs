@@ -52,7 +52,7 @@ export const variables = defineEnvVars({
 	},
 	DRIVE_INTERNAL_ORIGIN: {
 		description:
-			'Server-side PHH-DRIVE base URL in Docker, e.g. `http://host.docker.internal:1025`. Falls back to DRIVE_ORIGIN.',
+			'Server-side PHH-DRIVE base URL in Docker, e.g. `http://phh-drive:1025` (http only — TLS is at nginx). Falls back to DRIVE_ORIGIN.',
 		schema: optionalString
 	},
 	DRIVE_TEAM_API_KEY: {

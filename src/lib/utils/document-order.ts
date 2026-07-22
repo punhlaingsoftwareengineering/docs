@@ -2,7 +2,6 @@ import type { AdminDocumentOrderRow } from '$lib/types/docs-tree';
 
 type OrderableDocument = {
 	id: string;
-	slug: string;
 	title: string;
 	parentDocumentId: string | null;
 	sortOrder: number;
@@ -52,7 +51,6 @@ export function flattenCategoryDocumentsForOrder(
 			result.push({
 				id: doc.id,
 				title: doc.title,
-				slug: doc.slug,
 				categoryId: doc.categoryId,
 				parentDocumentId: doc.parentDocumentId,
 				depth: depthMap.get(doc.id) ?? 1,

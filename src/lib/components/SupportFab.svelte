@@ -1,0 +1,98 @@
+<script lang="ts">
+	import { onMount } from 'svelte';
+	import { BadgeQuestionMark, Bot, Palette, Type } from '@lucide/svelte';
+	import AiChatDialog from '$lib/components/AiChatDialog.svelte';
+	import FontDialog from '$lib/components/FontDialog.svelte';
+	import ThemeDialog from '$lib/components/ThemeDialog.svelte';
+
+	let chatDialog = $state<AiChatDialog | null>(null);
+	let themeDialog = $state<ThemeDialog | null>(null);
+	let fontDialog = $state<FontDialog | null>(null);
+
+	function closeFab() {
+		if (document.activeElement instanceof HTMLElement) {
+			document.activeElement.blur();
+		}
+	}
+
+	function openChat() {
+		closeFab();
+		chatDialog?.open();
+	}
+
+	function openTheme() {
+		closeFab();
+		themeDialog?.open();
+	}
+
+	function openFont() {
+		closeFab();
+		fontDialog?.open();
+	}
+
+	onMount(() => {
+		function onKeydown(event: KeyboardEvent) {
+			if (!event.ctrlKey || event.metaKey || event.altKey) return;
+			if (event.key !== '/' && event.code !== 'Slash') return;
+
+			const target = event.target;
+			if (
+				target instanceof HTMLElement &&
+				(target.isContentEditable ||
+					target.closest('input, textarea, select, [contenteditable="true"]') !== null)
+			) {
+				return;
+			}
+
+			event.preventDefault();
+			closeFab();
+			chatDialog?.open();
+		}
+
+		window.addEventListener('keydown', onKeydown);
+		return () => window.removeEventListener('keydown', onKeydown);
+	});
+</script>
+
+<AiChatDialog bind:this={chatDialog} />
+<ThemeDialog bind:this={themeDialog} />
+<FontDialog bind:this={fontDialog} />
+
+<div class="fab z-50">
+	<div tabindex="0" role="button" class="btn btn-circle btn-primary shadow-lg" aria-label="Help">
+		<BadgeQuestionMark class="h-4 w-4" />
+	</div>
+
+	<div class="tooltip tooltip-left" data-tip="AI assistant (Ctrl+/)">
+		<button
+			type="button"
+			class="btn btn-circle btn-primary shadow-md"
+			aria-label="AI assistant (Ctrl+/)"
+			onclick={openChat}
+		>
+			<Bot class="h-4 w-4" />
+		</button>
+	</div>
+
+	<div class="tooltip tooltip-left" data-tip="Font">
+		<button
+			type="button"
+			class="btn btn-circle btn-warning shadow-md"
+			aria-label="Font"
+			onclick={openFont}
+		>
+			<Type class="h-4 w-4" />
+		</button>
+	</div>
+
+	<div class="tooltip tooltip-left" data-tip="Theme">
+		<button
+			type="button"
+			class="btn btn-circle btn-info shadow-md"
+			aria-label="Theme"
+			onclick={openTheme}
+		>
+			<Palette class="h-4 w-4" />
+		</button>
+	</div>
+</div>

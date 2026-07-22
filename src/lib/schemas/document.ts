@@ -17,14 +17,6 @@ const httpUrlSchema = z
 		}
 	}, 'URL must start with http:// or https://');
 
-export const docSlugSchema = z.object({
-	slug: z
-		.string()
-		.min(1)
-		.max(128)
-		.regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Invalid doc slug')
-});
-
 export const documentIdSchema = z.object({
 	id: z.uuid()
 });
@@ -32,12 +24,6 @@ export const documentIdSchema = z.object({
 export const documentFormSchema = z
 	.object({
 		title: z.string().min(1, 'Title is required').max(200),
-		slug: z
-			.string()
-			.max(128)
-			.regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Invalid slug')
-			.optional()
-			.or(z.literal('')),
 		contentType: z.enum(DOCUMENT_CONTENT_TYPES).default(DEFAULT_DOCUMENT_CONTENT_TYPE),
 		mediaUrl: z.string().max(2048).optional().or(z.literal('')),
 		content: z.string().max(500_000).default(''),

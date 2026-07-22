@@ -22,17 +22,14 @@
 	let editingId = $state<string | null>(null);
 
 	let createName = $state('');
-	let createSlug = $state('');
 	let createSortOrder = $state(0);
 
 	let editName = $state('');
-	let editSlug = $state('');
 	let editSortOrder = $state(0);
 
 	$effect(() => {
 		if (form?.action === 'create' && form.values) {
 			createName = (form.values.name as string) ?? '';
-			createSlug = (form.values.slug as string) ?? '';
 			createSortOrder = Number(form.values.sortOrder ?? 0);
 		}
 	});
@@ -41,7 +38,6 @@
 		if (form?.action === 'update' && form.editId) {
 			editingId = form.editId;
 			editName = (form.values?.name as string) ?? '';
-			editSlug = (form.values?.slug as string) ?? '';
 			editSortOrder = Number(form.values?.sortOrder ?? 0);
 		}
 	});
@@ -51,7 +47,6 @@
 
 		if (form.action === 'create') {
 			createName = '';
-			createSlug = '';
 			createSortOrder = data.categories.length;
 		}
 
@@ -63,7 +58,6 @@
 	function startEdit(cat: PageData['categories'][number]) {
 		editingId = cat.id;
 		editName = cat.name;
-		editSlug = cat.slug;
 		editSortOrder = cat.sortOrder;
 	}
 
@@ -98,20 +92,6 @@
 						/>
 					</td>
 					<td class="align-middle p-0">
-						<label class="label py-0" for="create-slug"><span class="label-text">Slug</span></label>
-					</td>
-					<td class="min-w-0 p-0">
-						<input
-							id="create-slug"
-							name="slug"
-							class="input input-bordered w-full"
-							bind:value={createSlug}
-							placeholder="auto-from-name"
-						/>
-					</td>
-				</tr>
-				<tr>
-					<td class="align-middle p-0">
 						<label class="label py-0" for="create-sort"
 							><span class="label-text">Sort order</span></label
 						>
@@ -126,6 +106,10 @@
 							bind:value={createSortOrder}
 						/>
 					</td>
+				</tr>
+				<tr>
+					<td class="p-0" aria-hidden="true"></td>
+					<td class="p-0" aria-hidden="true"></td>
 					<td class="p-0" aria-hidden="true"></td>
 					<td class="min-w-0 p-0">
 						<button type="submit" class="btn btn-primary">Add category</button>
@@ -150,7 +134,6 @@
 					<thead>
 						<tr>
 							<th>Name</th>
-							<th>Slug</th>
 							<th>Sort</th>
 							<th>Documents</th>
 							<th class="w-40"></th>
@@ -160,7 +143,7 @@
 						{#each data.categories as cat (cat.id)}
 							{#if editingId === cat.id}
 								<tr>
-									<td colspan="5" class="bg-base-200/50">
+									<td colspan="4" class="bg-base-200/50">
 										<form
 											method="POST"
 											action="?/update"
@@ -185,21 +168,6 @@
 														/>
 													</td>
 													<td class="align-middle p-0">
-														<label class="label py-0" for="edit-slug-{cat.id}"
-															><span class="label-text">Slug</span></label
-														>
-													</td>
-													<td class="min-w-0 p-0">
-														<input
-															id="edit-slug-{cat.id}"
-															name="slug"
-															class="input input-bordered input-sm w-full"
-															bind:value={editSlug}
-														/>
-													</td>
-												</tr>
-												<tr>
-													<td class="align-middle p-0">
 														<label class="label py-0" for="edit-sort-{cat.id}"
 															><span class="label-text">Sort order</span></label
 														>
@@ -214,6 +182,10 @@
 															bind:value={editSortOrder}
 														/>
 													</td>
+												</tr>
+												<tr>
+													<td class="p-0" aria-hidden="true"></td>
+													<td class="p-0" aria-hidden="true"></td>
 													<td class="p-0" aria-hidden="true"></td>
 													<td class="min-w-0 p-0">
 														<div class="flex gap-2">
@@ -235,7 +207,6 @@
 							{:else}
 								<tr class="hover">
 									<td class="font-medium">{cat.name}</td>
-									<td class="font-mono text-sm text-base-content/70">{cat.slug}</td>
 									<td>{cat.sortOrder}</td>
 									<td>{cat.documentCount}</td>
 									<td>

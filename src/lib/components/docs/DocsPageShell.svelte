@@ -11,15 +11,15 @@
 	let {
 		appName,
 		sidebarGroups,
-		currentSlug,
-		currentCategorySlug,
+		currentId,
+		currentCategoryId,
 		children,
 		breadcrumbs
 	}: {
 		appName: string;
 		sidebarGroups: SidebarGroup[];
-		currentSlug?: string;
-		currentCategorySlug?: string;
+		currentId?: string;
+		currentCategoryId?: string;
 		children: Snippet;
 		breadcrumbs?: Snippet;
 	} = $props();
@@ -121,8 +121,8 @@
 			</div>
 			<DocsChapterSidebar
 				groups={sidebarGroups}
-				{currentSlug}
-				{currentCategorySlug}
+				{currentId}
+				{currentCategoryId}
 				onnavigate={closeDrawer}
 			/>
 		</aside>

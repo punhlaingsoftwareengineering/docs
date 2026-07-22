@@ -96,7 +96,7 @@ alwaysApply: false
 
 ## Migrations
 
-- Use `pnpm run db:generate` then `db:migrate` for schema changes
+- Use `npm run db:generate` then `db:migrate` for schema changes
 ```
 
 ---

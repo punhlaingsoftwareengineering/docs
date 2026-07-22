@@ -1,19 +1,22 @@
 import { error } from '@sveltejs/kit';
-import { categorySlugParamSchema } from '$lib/schemas/category';
-import { DEFAULT_DOCS_CATEGORY_DESCRIPTIONS } from '$lib/landing/defaults';
-import { getCategoryListingBySlug } from '$lib/server/services/categories';
+import { categoryIdParamSchema } from '$lib/schemas/category';
+import {
+	categoryDescriptionForId,
+	DEFAULT_DOCS_CATEGORY_DESCRIPTIONS
+} from '$lib/landing/defaults';
+import { getCategoryListingById } from '$lib/server/services/categories';
 import { getSiteSettings } from '$lib/server/services/settings';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ params }) => {
-	const parsed = categorySlugParamSchema.safeParse(params);
+	const parsed = categoryIdParamSchema.safeParse(params);
 
 	if (!parsed.success) {
 		error(404, 'Category not found');
 	}
 
 	const [result, settings] = await Promise.all([
-		getCategoryListingBySlug(parsed.data.slug),
+		getCategoryListingById(parsed.data.id),
 		getSiteSettings()
 	]);
 
@@ -29,6 +32,6 @@ export const load: PageServerLoad = async ({ params }) => {
 	return {
 		category: result.category,
 		items: result.items,
-		description: descriptions[result.category.slug] ?? null
+		description: categoryDescriptionForId(result.category.id, result.category.name, descriptions)
 	};
 };

@@ -132,4 +132,4 @@ import AdminFormTable from '$lib/components/admin/AdminFormTable.svelte';
 - [ ] Each field occupies exactly one label cell + one field cell
 - [ ] Columns align vertically across rows
 - [ ] Form stretches full content width
-- [ ] `pnpm check` passes after edits
+- [ ] `npm run check` passes after edits

@@ -5,14 +5,10 @@
 	let {
 		heading,
 		subtitle,
-		ctaLabel,
-		ctaUrl,
 		sections
 	}: {
 		heading: string;
 		subtitle: string;
-		ctaLabel?: string;
-		ctaUrl?: string;
 		sections: LandingCategorySection[];
 	} = $props();
 
@@ -29,9 +25,6 @@
 				<h2 class="text-3xl font-bold tracking-tight">{heading}</h2>
 				<p class="mt-4 text-base-content/70">{subtitle}</p>
 			</div>
-			{#if ctaLabel && ctaUrl}
-				<a href={ctaUrl} class="btn btn-outline btn-sm w-fit">{ctaLabel}</a>
-			{/if}
 		</div>
 
 		{#if sections.length === 0}
@@ -42,12 +35,12 @@
 			</div>
 		{:else}
 			<div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-				{#each sections as section (section.slug)}
+				{#each sections as section (section.id)}
 					<article class="card card-border bg-base-200 transition-shadow hover:shadow-md">
 						<div class="card-body gap-4">
 							<div class="card-title items-start justify-between gap-2">
 								<a
-									href={resolve(`/docs/category/${section.slug}`)}
+									href={resolve(`/docs/category/${section.id}`)}
 									class="link link-hover"
 								>
 									{section.name}
@@ -59,9 +52,9 @@
 
 							{#if section.documents.length > 0}
 								<ul class="menu menu-sm -mx-2 rounded-box bg-base-100/60 p-0">
-									{#each section.documents as doc (doc.slug)}
+									{#each section.documents as doc (doc.id)}
 										<li>
-											<a href={resolve(`/docs/${doc.slug}`)} class="flex-col items-start py-2">
+											<a href={resolve(`/docs/${doc.id}`)} class="flex-col items-start py-2">
 												<span class="font-medium">{doc.title}</span>
 												{#if doc.excerpt}
 													<span class="text-xs text-base-content/60">{doc.excerpt}</span>
@@ -74,7 +67,7 @@
 
 							<div class="card-actions justify-start pt-1">
 								<a
-									href={resolve(`/docs/category/${section.slug}`)}
+									href={resolve(`/docs/category/${section.id}`)}
 									class="link link-primary text-sm"
 								>
 									{seeAllLabel(section.documentCount)} →

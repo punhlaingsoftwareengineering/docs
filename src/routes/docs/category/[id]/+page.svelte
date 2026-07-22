@@ -12,7 +12,7 @@
 <DocsPageShell
 	appName={data.site.appName}
 	sidebarGroups={data.sidebarGroups}
-	currentCategorySlug={data.category.slug}
+	currentCategoryId={data.category.id}
 >
 	{#snippet breadcrumbs()}
 		<nav aria-label="Breadcrumb" class="breadcrumbs text-sm">

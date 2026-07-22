@@ -20,41 +20,34 @@ export * from './auth.schema';
 export const category = pgTable('category', {
 	id: uuid('id').primaryKey().defaultRandom(),
 	name: text('name').notNull(),
-	slug: text('slug').notNull().unique(),
 	sortOrder: integer('sort_order').notNull().default(0)
 });
 
-export const document = pgTable(
-	'document',
-	{
-		id: uuid('id').primaryKey().defaultRandom(),
-		slug: text('slug').notNull(),
-		title: text('title').notNull(),
-		content: text('content').notNull().default(''),
-		contentType: text('content_type').notNull().default('markdown'),
-		mediaUrl: text('media_url'),
-		excerpt: text('excerpt'),
-		published: boolean('published').notNull().default(false),
-		categoryId: uuid('category_id')
-			.notNull()
-			.references(() => category.id),
-		parentDocumentId: uuid('parent_document_id').references((): AnyPgColumn => document.id, {
-			onDelete: 'cascade'
-		}),
-		sortOrder: integer('sort_order').notNull().default(0),
-		createdAt: timestamp('created_at').defaultNow().notNull(),
-		updatedAt: timestamp('updated_at')
-			.defaultNow()
-			.$onUpdate(() => new Date())
-			.notNull()
-	},
-	(table) => [uniqueIndex('document_slug_idx').on(table.slug)]
-);
+export const document = pgTable('document', {
+	id: uuid('id').primaryKey().defaultRandom(),
+	title: text('title').notNull(),
+	content: text('content').notNull().default(''),
+	contentType: text('content_type').notNull().default('markdown'),
+	mediaUrl: text('media_url'),
+	excerpt: text('excerpt'),
+	published: boolean('published').notNull().default(false),
+	categoryId: uuid('category_id')
+		.notNull()
+		.references(() => category.id),
+	parentDocumentId: uuid('parent_document_id').references((): AnyPgColumn => document.id, {
+		onDelete: 'cascade'
+	}),
+	sortOrder: integer('sort_order').notNull().default(0),
+	createdAt: timestamp('created_at').defaultNow().notNull(),
+	updatedAt: timestamp('updated_at')
+		.defaultNow()
+		.$onUpdate(() => new Date())
+		.notNull()
+});
 
 export const tag = pgTable('tag', {
 	id: uuid('id').primaryKey().defaultRandom(),
-	name: text('name').notNull(),
-	slug: text('slug').notNull().unique()
+	name: text('name').notNull().unique()
 });
 
 export const documentTag = pgTable(

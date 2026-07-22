@@ -13,16 +13,16 @@ alwaysApply: false
 
 ## Tables
 
-- `category` — name, slug, sort order (managed in admin)
-- `document` — slug unique, title, content (markdown body or optional notes for media pages), `contentType` (`markdown` | `pdf` | `video` | `audio` | `image` | `office`, default `markdown`), `mediaUrl` (`http://` or `https://` URL when not markdown), excerpt, published, categoryId
-- `tag` + `document_tag` — many-to-many tags on documents (`document_tag` uses a UUID primary key with a unique pair index on document + tag)
+- `category` — name, sort order (managed in admin); public URLs use `id`
+- `document` — title, content (markdown body or optional notes for media pages), `contentType` (`markdown` | `pdf` | `video` | `audio` | `image` | `office`, default `markdown`), `mediaUrl` (`http://` or `https://` URL when not markdown), excerpt, published, categoryId; public URLs use `id`
+- `tag` + `document_tag` — many-to-many tags on documents (`document_tag` uses a UUID primary key with a unique pair index on document + tag); tags matched by unique `name`
 - `site_settings` — site branding, landing hero, defaults
 
 ## Migrations
 
-- Use `pnpm run db:generate` then `pnpm run db:push` for schema changes
+- Use `npm run db:generate` then `npm run db:push` for schema changes
 
-## Slugs
+## Routing IDs
 
-- Auto-generate from title (kebab-case) when slug empty on save
-- Admin can override slug manually
+- Public docs routes use UUID `id` path params (`/docs/[id]`, `/docs/category/[id]`)
+- No DB `slug` columns on category, document, or tag; `slugify()` is only for markdown heading anchors

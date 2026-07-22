@@ -1,11 +1,17 @@
 import { error } from '@sveltejs/kit';
-import { getDocumentBySlug } from '$lib/server/services/docs';
+import { documentIdSchema } from '$lib/schemas/document';
+import { getDocumentById } from '$lib/server/services/docs';
 import { canPreviewUnpublishedDocs } from '$lib/server/users';
 import type { RequestHandler } from './$types';
 
 export const GET: RequestHandler = async ({ params, locals }) => {
+	const parsed = documentIdSchema.safeParse(params);
+	if (!parsed.success) {
+		error(404, 'Media not found');
+	}
+
 	const canPreview = await canPreviewUnpublishedDocs(locals.user?.id);
-	const doc = await getDocumentBySlug(params.slug, { includeUnpublished: canPreview });
+	const doc = await getDocumentById(parsed.data.id, { includeUnpublished: canPreview });
 
 	if (!doc?.mediaUrl) {
 		error(404, 'Media not found');

@@ -19,7 +19,7 @@
 	>
 		{#if prev}
 			<a
-				href={resolve(`/docs/${prev.slug}`)}
+				href={resolve(`/docs/${prev.id}`)}
 				class="rounded-box border border-base-200 p-4 transition-colors hover:border-primary/40 hover:bg-base-200/40"
 			>
 				<span class="block text-xs text-base-content/60">Previous</span>
@@ -33,7 +33,7 @@
 		{/if}
 		{#if next}
 			<a
-				href={resolve(`/docs/${next.slug}`)}
+				href={resolve(`/docs/${next.id}`)}
 				class="rounded-box border border-base-200 p-4 text-right transition-colors hover:border-primary/40 hover:bg-base-200/40 sm:col-start-2"
 			>
 				<span class="block text-xs text-base-content/60">Next</span>

@@ -50,7 +50,7 @@ Until then, always end with exactly one next question.
 4. Append decision to .cursor/workflow-state.md
 5. Write or update ONE .cursor/rules/*.mdc rule for this decision
 6. Implement minimal code that follows the new rule
-7. Verify: `pnpm check` / lint if TS or Svelte changed
+7. Verify: `npm run check` / lint if TS or Svelte changed
 8. Output the per-turn summary template
 9. State the next question (preview only — full question next turn if user continues)
 ```

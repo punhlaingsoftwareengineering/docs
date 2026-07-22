@@ -7,7 +7,6 @@
 
 	type SearchResult = {
 		id: string;
-		slug: string;
 		title: string;
 		excerpt: string | null;
 		categoryName: string;
@@ -62,7 +61,7 @@
 
 	function navigateTo(result: SearchResult) {
 		closeDocsSearch();
-		goto(resolve(`/docs/${result.slug}`));
+		goto(resolve(`/docs/${result.id}`));
 	}
 
 	function onDialogKeydown(e: KeyboardEvent) {

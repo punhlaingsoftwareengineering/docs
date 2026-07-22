@@ -1,17 +1,15 @@
 # Build stage
 FROM node:22-slim AS builder
 
-RUN corepack enable && corepack prepare pnpm@11.5.1 --activate
-
 WORKDIR /app
 
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc .env.test ./
-RUN pnpm install --frozen-lockfile
+COPY package.json package-lock.json .npmrc .env.test ./
+RUN npm ci
 
 COPY . .
 RUN cp .env.test .env \
-	&& pnpm run prepare \
-	&& pnpm run build
+	&& npm run prepare \
+	&& npm run build
 
 # Runtime stage
 FROM node:22-slim

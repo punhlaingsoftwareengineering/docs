@@ -22,8 +22,8 @@
 
 ## DB scripts
 
-- `pnpm run db:ensure` — create CMS tables (non-interactive)
-- `pnpm run db:push` — interactive; use db:ensure if push prompts fail
+- `npm run db:ensure` — create CMS tables (non-interactive)
+- `npm run db:push` — interactive; use db:ensure if push prompts fail
 
 ## Admin routes
 

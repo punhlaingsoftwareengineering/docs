@@ -48,10 +48,10 @@ Use **employee-portal Caddy** — browse `http://docs.local.test`, not `localhos
 3. Four terminals:
 
    ```powershell
-   cd employee-portal && pnpm dev      # 1027
-   cd drive && pnpm dev                # 1025 (optional)
-   cd docs && pnpm dev                 # 1026
-   cd employee-portal && pnpm caddy:dev
+   cd employee-portal && npm run dev      # 1027
+   cd drive && npm run dev                # 1025 (optional)
+   cd docs && npm run dev                 # 1026
+   cd employee-portal && npm run caddy:dev
    ```
 
 4. In **docs** `.env` (see `.env.example`):
@@ -101,7 +101,7 @@ For local SSO, employee-portal owns Caddy (`Caddyfile.generated` from `.env`).
 Auth tables live in **portal Postgres** — do not run auth migrations against `DATABASE_URL`.
 
 ```sh
-pnpm run db:push   # CMS tables on DATABASE_URL only
+npm run db:push   # CMS tables on DATABASE_URL only
 ```
 
 ## Granting admin access
@@ -115,8 +115,8 @@ Docs does not manage users. In employee-portal:
 ## Local production test (without Docker)
 
 ```sh
-pnpm build
-PORT=1026 HOST=0.0.0.0 ORIGIN=http://docs.local.test pnpm start
+npm run build
+PORT=1026 HOST=0.0.0.0 ORIGIN=http://docs.local.test npm run start
 ```
 
 ## Troubleshooting
@@ -143,8 +143,8 @@ Set `ORIGIN` correctly; behind a proxy, configure `PROTOCOL_HEADER` / `HOST_HEAD
 ## Build locally
 
 ```sh
-pnpm install
-pnpm build
+npm install
+npm run build
 ```
 
 Build uses `.env.test` for placeholder env vars during Docker compilation. Runtime secrets come from your real `.env` or container environment.

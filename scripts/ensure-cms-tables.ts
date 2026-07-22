@@ -12,13 +12,10 @@ const statements = [
 	`CREATE TABLE IF NOT EXISTS "category" (
 		"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 		"name" text NOT NULL,
-		"slug" text NOT NULL,
-		"sort_order" integer DEFAULT 0 NOT NULL,
-		CONSTRAINT "category_slug_unique" UNIQUE("slug")
+		"sort_order" integer DEFAULT 0 NOT NULL
 	)`,
 	`CREATE TABLE IF NOT EXISTS "document" (
 		"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
-		"slug" text NOT NULL,
 		"title" text NOT NULL,
 		"content" text DEFAULT '' NOT NULL,
 		"excerpt" text,
@@ -30,8 +27,7 @@ const statements = [
 	`CREATE TABLE IF NOT EXISTS "tag" (
 		"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 		"name" text NOT NULL,
-		"slug" text NOT NULL,
-		CONSTRAINT "tag_slug_unique" UNIQUE("slug")
+		CONSTRAINT "tag_name_unique" UNIQUE("name")
 	)`,
 	`CREATE TABLE IF NOT EXISTS "document_tag" (
 		"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
@@ -85,7 +81,6 @@ const statements = [
 	EXCEPTION WHEN duplicate_object THEN NULL;
 	END $$`,
 	`CREATE UNIQUE INDEX IF NOT EXISTS "document_tag_document_id_tag_id_idx" ON "document_tag" ("document_id", "tag_id")`,
-	`CREATE UNIQUE INDEX IF NOT EXISTS "document_slug_idx" ON "document" USING btree ("slug")`,
 	`ALTER TABLE "document" ADD COLUMN IF NOT EXISTS "parent_document_id" uuid`,
 	`ALTER TABLE "document" ADD COLUMN IF NOT EXISTS "sort_order" integer DEFAULT 0 NOT NULL`,
 	`DO $$ BEGIN
@@ -124,7 +119,17 @@ const statements = [
 	`ALTER TABLE "site_settings" ADD COLUMN IF NOT EXISTS "nav_links" jsonb`,
 	`ALTER TABLE "document" ADD COLUMN IF NOT EXISTS "content_type" text DEFAULT 'markdown' NOT NULL`,
 	`ALTER TABLE "document" ADD COLUMN IF NOT EXISTS "media_url" text`,
-	`UPDATE "document" SET content_type = 'markdown' WHERE content_type IS NULL`
+	`UPDATE "document" SET content_type = 'markdown' WHERE content_type IS NULL`,
+	`DROP INDEX IF EXISTS "document_slug_idx"`,
+	`ALTER TABLE "category" DROP CONSTRAINT IF EXISTS "category_slug_unique"`,
+	`ALTER TABLE "tag" DROP CONSTRAINT IF EXISTS "tag_slug_unique"`,
+	`ALTER TABLE "category" DROP COLUMN IF EXISTS "slug"`,
+	`ALTER TABLE "document" DROP COLUMN IF EXISTS "slug"`,
+	`ALTER TABLE "tag" DROP COLUMN IF EXISTS "slug"`,
+	`DO $$ BEGIN
+		ALTER TABLE "tag" ADD CONSTRAINT "tag_name_unique" UNIQUE("name");
+	EXCEPTION WHEN duplicate_object THEN NULL;
+	END $$`
 ];
 
 for (const statement of statements) {

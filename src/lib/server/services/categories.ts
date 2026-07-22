@@ -5,11 +5,10 @@ import { category, document } from '$lib/server/db/schema';
 import type { CategoryListingItem } from '$lib/types/docs-tree';
 import type { LandingCategorySection } from '$lib/types/landing';
 import {
-	categoryBadgeForSlug,
-	categoryDescriptionForSlug,
+	categoryBadgeForId,
+	categoryDescriptionForId,
 	LANDING_CATEGORY_DOC_LIMIT
 } from '$lib/landing/defaults';
-import { slugify } from '$lib/utils/slug';
 import { buildCategoryListingTree, listDocumentsForTree } from '$lib/server/services/docs';
 
 export async function listCategories() {
@@ -37,13 +36,13 @@ export async function listLandingCategorySections(
 
 			return {
 				name: cat.name,
-				slug: cat.slug,
-				description: categoryDescriptionForSlug(cat.slug, cat.name, descriptions),
-				badge: categoryBadgeForSlug(cat.slug, cat.name),
+				id: cat.id,
+				description: categoryDescriptionForId(cat.id, cat.name, descriptions),
+				badge: categoryBadgeForId(cat.id, cat.name),
 				documentCount: catDocs.length,
 				documents: roots.slice(0, docLimit).map((doc) => ({
 					title: doc.title,
-					slug: doc.slug,
+					id: doc.id,
 					excerpt: doc.excerpt
 				}))
 			};
@@ -66,11 +65,11 @@ export async function getFirstPublishedCategory() {
 	return null;
 }
 
-export async function getCategoryListingBySlug(slug: string): Promise<{
+export async function getCategoryListingById(id: string): Promise<{
 	category: typeof category.$inferSelect;
 	items: CategoryListingItem[];
 } | null> {
-	const row = await getCategoryBySlug(slug);
+	const row = await getCategoryById(id);
 	if (!row) return null;
 
 	const docs = await listDocumentsForTree({ categoryId: row.id, includeUnpublished: false });
@@ -89,7 +88,6 @@ export async function listCategoriesWithCounts() {
 				.select({
 					id: category.id,
 					name: category.name,
-					slug: category.slug,
 					sortOrder: category.sortOrder,
 					documentCount: sql<number>`count(${document.id})::int`
 				})
@@ -112,40 +110,22 @@ export async function getCategoryById(id: string) {
 	);
 }
 
-export async function getCategoryBySlug(slug: string) {
-	return safeDbQuery(
-		'getCategoryBySlug',
-		async () => {
-			const [row] = await db.select().from(category).where(eq(category.slug, slug)).limit(1);
-			return row ?? null;
-		},
-		null
-	);
-}
-
-export async function createCategory(data: { name: string; slug?: string; sortOrder?: number }) {
-	const slug = data.slug?.trim() || slugify(data.name);
+export async function createCategory(data: { name: string; sortOrder?: number }) {
 	const [row] = await db
 		.insert(category)
 		.values({
 			name: data.name,
-			slug,
 			sortOrder: data.sortOrder ?? 0
 		})
 		.returning();
 	return row;
 }
 
-export async function updateCategory(
-	id: string,
-	data: { name: string; slug?: string; sortOrder?: number }
-) {
-	const slug = data.slug?.trim() || slugify(data.name);
+export async function updateCategory(id: string, data: { name: string; sortOrder?: number }) {
 	const [row] = await db
 		.update(category)
 		.set({
 			name: data.name,
-			slug,
 			sortOrder: data.sortOrder ?? 0
 		})
 		.where(eq(category.id, id))
@@ -179,7 +159,7 @@ function isUniqueViolation(error: unknown): boolean {
 
 export function categoryErrorMessage(error: unknown, fallback: string): string {
 	if (isUniqueViolation(error)) {
-		return 'A category with this slug already exists.';
+		return 'A category with this name already exists.';
 	}
 	return error instanceof Error ? error.message : fallback;
 }

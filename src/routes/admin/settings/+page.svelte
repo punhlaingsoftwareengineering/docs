@@ -516,8 +516,9 @@
 								rows="8">{landing.docsCategoryDescriptions}</textarea
 							>
 							<p class="mt-1 text-xs text-base-content/60">
-								JSON object keyed by category slug. Cards load from your categories:
-								{data.categories.map((cat) => cat.slug).join(', ') || 'none yet'}.
+								JSON object keyed by category UUID. Cards load from your categories:
+								{data.categories.map((cat) => `${cat.name} (${cat.id})`).join(', ') ||
+									'none yet'}.
 							</p>
 						</td>
 					</tr>

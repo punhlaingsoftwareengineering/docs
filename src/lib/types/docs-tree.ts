@@ -1,11 +1,11 @@
 export type DocTreeNode = {
-	slug: string;
+	id: string;
 	title: string;
 	children: DocTreeNode[];
 };
 
 export type CategoryListingItem = {
-	slug: string;
+	id: string;
 	title: string;
 	excerpt: string | null;
 	children: CategoryListingItem[];
@@ -13,12 +13,12 @@ export type CategoryListingItem = {
 
 export type SidebarGroup = {
 	name: string;
-	slug: string;
+	id: string;
 	items: DocTreeNode[];
 };
 
 export type DocNavItem = {
-	slug: string;
+	id: string;
 	title: string;
 };
 
@@ -32,7 +32,6 @@ export type ParentOption = {
 export type AdminDocumentOrderRow = {
 	id: string;
 	title: string;
-	slug: string;
 	categoryId: string;
 	parentDocumentId: string | null;
 	depth: number;

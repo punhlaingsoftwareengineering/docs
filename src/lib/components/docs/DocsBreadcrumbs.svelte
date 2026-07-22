@@ -4,12 +4,12 @@
 
 	let {
 		categoryName,
-		categorySlug,
+		categoryId,
 		ancestors,
 		currentTitle
 	}: {
 		categoryName: string;
-		categorySlug?: string;
+		categoryId?: string;
 		ancestors: DocNavItem[];
 		currentTitle: string;
 	} = $props();
@@ -18,13 +18,13 @@
 <nav aria-label="Breadcrumb" class="breadcrumbs text-sm">
 	<ul>
 		<li><a href={resolve('/docs')}>Docs</a></li>
-		{#if categorySlug}
-			<li><a href={resolve(`/docs/category/${categorySlug}`)}>{categoryName}</a></li>
+		{#if categoryId}
+			<li><a href={resolve(`/docs/category/${categoryId}`)}>{categoryName}</a></li>
 		{:else}
 			<li><span>{categoryName}</span></li>
 		{/if}
-		{#each ancestors as ancestor (ancestor.slug)}
-			<li><a href={resolve(`/docs/${ancestor.slug}`)}>{ancestor.title}</a></li>
+		{#each ancestors as ancestor (ancestor.id)}
+			<li><a href={resolve(`/docs/${ancestor.id}`)}>{ancestor.title}</a></li>
 		{/each}
 		<li><span class="font-medium">{currentTitle}</span></li>
 	</ul>

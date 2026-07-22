@@ -7,9 +7,9 @@
 
 {#snippet sectionTree(nodes: CategoryListingItem[])}
 	<div class="grid gap-3">
-		{#each nodes as node (node.slug)}
+		{#each nodes as node (node.id)}
 			<a
-				href={resolve(`/docs/${node.slug}`)}
+				href={resolve(`/docs/${node.id}`)}
 				class="card flex flex-col rounded-box border border-base-200 bg-base-200/40 p-4 transition-colors hover:border-primary/30"
 			>
 				<span class="font-medium text-base-content">{node.title}</span>

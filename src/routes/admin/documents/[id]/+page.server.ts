@@ -112,7 +112,6 @@ export const actions: Actions = {
 
 		await updateDocument(idParsed.data.id, {
 			title: doc.title,
-			slug: doc.slug,
 			contentType: doc.contentType,
 			mediaUrl: doc.mediaUrl ?? '',
 			content: doc.content,

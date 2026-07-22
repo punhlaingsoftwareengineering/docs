@@ -40,13 +40,13 @@ export type ResolvedLandingSettings = {
 
 export type LandingCategorySection = {
 	name: string;
-	slug: string;
+	id: string;
 	description: string;
 	badge: string;
 	documentCount: number;
 	documents: {
 		title: string;
-		slug: string;
+		id: string;
 		excerpt: string | null;
 	}[];
 };

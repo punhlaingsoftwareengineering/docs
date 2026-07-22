@@ -12,8 +12,8 @@ alwaysApply: false
 |------|--------|---------|
 | `/` | public | Home / landing |
 | `/docs` | public | Documentation index (redirects to first category) |
-| `/docs/category/[slug]` | public | Category section index listing child docs |
-| `/docs/[slug]` | public | Single published doc |
+| `/docs/category/[id]` | public | Category section index listing child docs |
+| `/docs/[id]` | public | Single published doc (UUID) |
 | `/auth/login` | public | Session expired / sign-in via employee portal link |
 | `/admin` | admin | Dashboard |
 | `/admin/documents` | admin | Document list |
@@ -22,7 +22,7 @@ alwaysApply: false
 | `/admin/categories` | admin | Category management |
 | `/admin/settings` | admin | Site settings |
 | `/api/auth/*` | public | Better Auth API + `POST /api/auth/logout` |
-| `/api/document-media/[slug]` | public | Same-origin PDF proxy for in-page embeds |
+| `/api/document-media/[id]` | public | Same-origin PDF proxy for in-page embeds |
 
 ## Groups
 
@@ -36,3 +36,4 @@ alwaysApply: false
 - Use `resolve()` from `$app/paths` for internal links
 - `/admin/**` uses `+layout.server.ts` for auth guard
 - Unpublished docs return 404 for public; users with `canAccessDocsAdmin` can preview when signed in
+- Public doc/category URLs use UUID `id`, not slugs

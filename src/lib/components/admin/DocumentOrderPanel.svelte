@@ -183,7 +183,6 @@
 
 							<div class="min-w-0 flex-1">
 								<p class="truncate font-medium">{item.title}</p>
-								<p class="truncate font-mono text-xs text-base-content/60">{item.slug}</p>
 							</div>
 
 							{#if item.published}

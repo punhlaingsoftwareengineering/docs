@@ -1,28 +1,16 @@
 <script lang="ts">
-	import { Search } from '@lucide/svelte';
-	import { resolve } from '$app/paths';
-	import { openDocsSearch } from '$lib/state/docs-search.svelte';
-
 	let {
 		heroTitle,
 		heroSubtitle,
 		heroPrimaryCta,
 		heroPrimaryUrl,
-		heroSecondaryCta,
-		heroSecondaryUrl,
-		searchPlaceholder,
-		tagline,
-		showSecondaryCta = true
+		tagline
 	}: {
 		heroTitle: string;
 		heroSubtitle: string;
 		heroPrimaryCta: string;
 		heroPrimaryUrl: string;
-		heroSecondaryCta: string;
-		heroSecondaryUrl: string;
-		searchPlaceholder: string;
 		tagline: string;
-		showSecondaryCta?: boolean;
 	} = $props();
 </script>
 
@@ -47,32 +35,10 @@
 			{heroSubtitle}
 		</p>
 
-		<div class="mt-10 w-full max-w-xl">
-			<button
-				type="button"
-				class="input input-bordered flex w-full items-center gap-3 text-left transition-colors"
-				aria-label="Search documentation"
-				onclick={() => openDocsSearch()}
-			>
-				<Search class="h-5 w-5 shrink-0 text-base-content/50" aria-hidden="true" />
-				<span class="text-base-content/50">{searchPlaceholder}</span>
-				<span class="ml-auto hidden items-center gap-1 sm:inline-flex">
-					<kbd class="kbd">ctrl</kbd>
-					<span class="text-base-content/50">+</span>
-					<kbd class="kbd">k</kbd>
-				</span>
-			</button>
-		</div>
-
-		<div class="mt-8 flex flex-wrap items-center justify-center gap-3">
+		<div class="mt-10 flex flex-wrap items-center justify-center gap-3">
 			<a href={heroPrimaryUrl} class="btn btn-primary">
 				{heroPrimaryCta}
 			</a>
-			{#if showSecondaryCta}
-				<a href={heroSecondaryUrl} class="btn btn-outline">
-					{heroSecondaryCta}
-				</a>
-			{/if}
 		</div>
 	</div>
 </section>
